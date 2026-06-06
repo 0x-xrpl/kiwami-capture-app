@@ -1365,6 +1365,18 @@ body.resend-home .bridge-opportunity-card strong {
   font-size: 1.08rem;
   line-height: 1.08;
 }
+body.resend-home .bridge-copy {
+  margin: 14px 0 0;
+  max-width: 82ch;
+  color: #5d584f;
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+body.resend-home .bridge-list {
+  margin: 12px 0 18px;
+  padding-left: 18px;
+  color: #4f463b;
+}
 body.resend-home .bridge-cta-row {
   margin-top: 18px;
   justify-content: flex-start;
@@ -1898,12 +1910,21 @@ body.compare-page .compare-observation-grid {
   gap: 18px;
 }
 
-body.compare-page .compare-observation-card {
-  margin-bottom: 0;
+body.compare-page .compare-observation-grid > .card {
+  display: grid;
+  gap: 14px;
+  align-content: start;
 }
 
-body.compare-page .compare-observation-card h2 {
-  margin-bottom: 10px;
+body.compare-page .compare-observation-grid > .card h2 {
+  font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 0.98;
+  min-height: 3.8em;
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 0;
 }
 
 body.compare-page .compare-actions-shell {

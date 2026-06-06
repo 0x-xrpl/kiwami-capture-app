@@ -450,11 +450,11 @@
               <div class="demo-grid demo-grid-2">
                 <article class="card demo-panel">
                   <div class="memory-group-head">Local-first skill capture</div>
-                  <p>Raw clips stay on this device. Practice Memory is generated locally. Shareable skill metadata is derived from selected frames and local evidence.</p>
+                  <p>Raw clips stay on this device. Kiwami extracts only the reusable skill layer: Practice Memory, evidence notes, and skill metadata.</p>
                   <div class="skill-tag-list compact">
                     <span class="skill-tag">Stays local</span>
-                    <span class="skill-tag">Local guidance</span>
-                    <span class="skill-tag">Frame evidence</span>
+                    <span class="skill-tag">Skill layer</span>
+                    <span class="skill-tag">Evidence-based</span>
                   </div>
                 </article>
                 <article class="card demo-panel">
@@ -471,7 +471,7 @@
               <div class="demo-grid demo-grid-2">
                 <article class="card demo-panel">
                   <div class="memory-group-head">Skill profile preview</div>
-                  <p>This preview shows the skill shape captured from selected frames and local evidence.</p>
+                  <p>This preview shows the captured skill shape from selected frames and local evidence.</p>
                   {% set skill_graph = latest_session.skill_graph_visual %}
                   {% if skill_graph and skill_graph.axes %}
                     <div class="skill-radar skill-graph">
@@ -566,6 +566,13 @@
                 <span class="skill-tag">High-risk / Specialized Operations</span>
                 <span class="skill-tag">Education / Succession</span>
               </div>
+              <p class="bridge-copy">Kiwami Bridge helps the captured skill profile move toward future roles, teams, and training contexts without exposing names, faces, raw clips, or private workshop footage.</p>
+              <ul class="clean-list bridge-list">
+                <li>No names</li>
+                <li>No faces</li>
+                <li>No raw clips</li>
+                <li>Only reusable skill metadata</li>
+              </ul>
               <div class="bridge-opportunity-grid">
                 <article class="card bridge-opportunity-card">
                   <div class="memory-group-head">Craft / Traditional Skills</div>
@@ -598,7 +605,7 @@
               </div>
             {% else %}
               <div class="demo-placeholder">
-                <p>Bridge Preview uses skill metadata after capture.</p>
+                <p>Kiwami Bridge helps the captured skill profile move toward future roles, teams, and training contexts without exposing names, faces, raw clips, or private workshop footage.</p>
                 <a class="button button-primary btn-primary" href="#capture">Open KIWAMI BRIDGE</a>
               </div>
             {% endif %}

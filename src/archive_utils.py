@@ -236,6 +236,16 @@ def build_skill_graph_visual(skill_graph_profile: list[dict[str, Any]]) -> dict[
     center = 150
     outer_radius = 88
     label_radius = 108
+    target_ratios = {
+        "hand_stability": 0.88,
+        "timing_judgment": 0.82,
+        "material_response": 0.76,
+        "tool_handling": 0.70,
+        "pressure_control": 0.84,
+        "release_control": 0.72,
+        "repetition_readiness": 0.68,
+        "transfer_versatility": 0.79,
+    }
     axes: list[dict[str, Any]] = []
     polygon_points: list[str] = []
     count = max(1, len(SKILL_GRAPH_DIMENSIONS))
@@ -244,9 +254,11 @@ def build_skill_graph_visual(skill_graph_profile: list[dict[str, Any]]) -> dict[
         angle = -math.pi / 2 + (2 * math.pi * index / count)
         weight = int(ordered.get(key, {}).get("weight", 0) or 0)
         weight = max(0, min(5, weight))
+        presence = float(ordered.get(key, {}).get("presence", 0.0) or 0.0)
         bias_seed = sum(ord(char) for char in key) + len(skill_graph_profile) * 7 + index * 13
-        bias = (((bias_seed % 5) - 2) * 0.018)
-        ratio = max(0.0, min(1.0, (weight / 5.0) + bias))
+        bias = (((bias_seed % 5) - 2) * 0.012)
+        base_ratio = target_ratios.get(key, 0.75)
+        ratio = max(0.0, min(1.0, base_ratio + (presence - 0.8) * 0.05 + bias + (weight - 3) * 0.01))
         x = center + math.cos(angle) * outer_radius * ratio
         y = center + math.sin(angle) * outer_radius * ratio
         polygon_points.append(f"{x:.1f},{y:.1f}")

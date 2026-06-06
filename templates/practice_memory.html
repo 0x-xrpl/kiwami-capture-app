@@ -8,30 +8,6 @@
 </head>
 <body class="app-page memory-page">
   <div class="page-shell app-shell">
-    <header class="topbar app-topbar">
-      <a class="brand" href="{{ url_for('index') }}" aria-label="Kiwami Capture home">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-copy">
-          <strong>Kiwami Capture</strong>
-          <span>Local-first AI capture</span>
-        </span>
-      </a>
-
-      <nav class="topnav" aria-label="Primary">
-        <a href="{{ url_for('index') }}">Capture</a>
-        <a href="{{ url_for('compare', session_id=data.session_id) }}">Review</a>
-        <a href="{{ url_for('memory', session_id=data.session_id) }}">Practice Memory</a>
-        <a href="{{ url_for('judge', session_id=data.session_id) }}">Project Explanation</a>
-        <a href="{{ url_for('index') }}#archive">Archive</a>
-        <a href="{{ url_for('index') }}#bridge">Bridge</a>
-      </nav>
-
-      <div class="topbar-actions">
-        <span class="status-pill"><i></i> Local only</span>
-        <a class="button button-primary btn-primary" href="{{ url_for('index') }}#capture">Create Capture</a>
-      </div>
-    </header>
-
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <section class="card app-card">
