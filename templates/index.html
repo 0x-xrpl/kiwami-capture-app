@@ -601,12 +601,12 @@
                 </article>
               </div>
               <div class="app-actions">
-                <a class="button button-primary btn-primary" href="#capture">Open KIWAMI BRIDGE</a>
+                <a class="button button-primary btn-primary" href="{{ url_for('bridge_page', session_id=latest_session.session_id) }}">Open KIWAMI BRIDGE</a>
               </div>
             {% else %}
               <div class="demo-placeholder">
                 <p>Kiwami Bridge helps the captured skill profile move toward future roles, teams, and training contexts without exposing names, faces, raw clips, or private workshop footage.</p>
-                <a class="button button-primary btn-primary" href="#capture">Open KIWAMI BRIDGE</a>
+                <a class="button button-primary btn-primary" href="{{ url_for('bridge_page') }}">Open KIWAMI BRIDGE</a>
               </div>
             {% endif %}
           </section>

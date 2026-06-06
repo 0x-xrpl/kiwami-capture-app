@@ -2099,6 +2099,10 @@ body.app-page .topnav a {
   font-size: 0.92rem;
 }
 
+body.bridge-page .topnav a.active {
+  color: var(--bronze-dark);
+}
+
 body.app-page .topbar-actions {
   display: flex;
   align-items: center;
@@ -2562,6 +2566,355 @@ body.app-page .section-head h2 {
 
 body.app-page .card {
   padding: 24px;
+}
+
+body.bridge-page .page-shell {
+  gap: 18px;
+}
+
+body.bridge-page .app-topbar {
+  gap: 24px;
+}
+
+body.bridge-page .bridge-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 24px;
+  padding: 26px 28px;
+}
+
+body.bridge-page .bridge-hero h1 {
+  margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  font-size: clamp(3rem, 4.4vw, 4.8rem);
+  color: var(--charcoal);
+}
+
+body.bridge-page .bridge-hero-copy {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+body.bridge-page .bridge-hero-copy > p {
+  margin: 0;
+  max-width: 48ch;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: #5d584f;
+}
+
+body.bridge-page .bridge-rail {
+  border-radius: 24px;
+  border: 1px solid rgba(122, 76, 46, 0.12);
+  background: rgba(255, 252, 247, 0.9);
+  padding: 18px;
+  display: grid;
+  gap: 16px;
+}
+
+body.bridge-page .bridge-rail-section + .bridge-rail-section {
+  padding-top: 14px;
+  border-top: 1px solid rgba(122, 76, 46, 0.08);
+}
+
+body.bridge-page .bridge-rail-label,
+body.bridge-page .bridge-holder-category,
+body.bridge-page .bridge-role-category {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  color: var(--bronze);
+  margin-bottom: 10px;
+}
+
+body.bridge-page .bridge-status-list,
+body.bridge-page .bridge-bullet-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+body.bridge-page .bridge-status-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--charcoal);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.94rem;
+}
+
+body.bridge-page .bridge-status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+body.bridge-page .bridge-status-dot.ok {
+  background: var(--bronze);
+  box-shadow: 0 0 0 3px rgba(164, 107, 70, 0.12);
+}
+
+body.bridge-page .bridge-status-dot.no {
+  background: rgba(122, 76, 46, 0.24);
+}
+
+body.bridge-page .bridge-section {
+  display: grid;
+  gap: 18px;
+}
+
+body.bridge-page .bridge-current-grid,
+body.bridge-page .bridge-summary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.42fr) minmax(320px, 0.78fr);
+  gap: 18px;
+}
+
+body.bridge-page .bridge-profile-card,
+body.bridge-page .bridge-privacy-card,
+body.bridge-page .bridge-summary-table,
+body.bridge-page .bridge-excluded {
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(122, 76, 46, 0.1);
+  background: rgba(255, 252, 247, 0.86);
+}
+
+body.bridge-page .bridge-profile-table {
+  display: grid;
+  gap: 0;
+}
+
+body.bridge-page .bridge-profile-table > div {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 14px;
+  border-bottom: 1px solid rgba(122, 76, 46, 0.08);
+  padding: 12px 0;
+  align-items: start;
+}
+
+body.bridge-page .bridge-profile-table > div:first-child {
+  padding-top: 0;
+}
+
+body.bridge-page .bridge-profile-table > div:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+body.bridge-page .bridge-profile-table dt {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  color: var(--warm-gray);
+}
+
+body.bridge-page .bridge-profile-table dd {
+  margin: 0;
+  color: var(--charcoal);
+}
+
+body.bridge-page .bridge-privacy-card h3 {
+  font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 0.98;
+  margin: 0 0 8px;
+}
+
+body.bridge-page .bridge-bullet-list {
+  padding-left: 18px;
+  list-style: disc;
+  color: var(--charcoal);
+}
+
+body.bridge-page .bridge-tabs {
+  margin-top: 18px;
+  margin-bottom: 0;
+}
+
+body.bridge-page .bridge-tabs .skill-tag.active {
+  border-color: rgba(164, 107, 70, 0.34);
+  background: rgba(164, 107, 70, 0.08);
+  color: var(--bronze-dark);
+}
+
+body.bridge-page .bridge-holder-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+body.bridge-page .bridge-holder-card {
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+  border-radius: 24px;
+}
+
+body.bridge-page .bridge-holder-top {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+body.bridge-page .bridge-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #f0e2cf;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+body.bridge-page .bridge-avatar span {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bronze-dark);
+  opacity: 0.78;
+}
+
+body.bridge-page .bridge-holder-id {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  color: var(--warm-gray);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+
+body.bridge-page .bridge-holder-card h3,
+body.bridge-page .bridge-role-card h3 {
+  margin: 2px 0 6px;
+  font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 0.98;
+  color: var(--charcoal);
+  font-size: clamp(1.3rem, 2vw, 1.7rem);
+}
+
+body.bridge-page .bridge-holder-card p,
+body.bridge-page .bridge-role-card p,
+body.bridge-page .bridge-footer p,
+body.bridge-page .bridge-hero-copy p,
+body.bridge-page .bridge-summary-table dd,
+body.bridge-page .bridge-profile-table dd {
+  color: #5d584f;
+  line-height: 1.65;
+}
+
+body.bridge-page .bridge-holder-actions,
+body.bridge-page .bridge-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+body.bridge-page .bridge-holder-actions {
+  justify-content: flex-start;
+}
+
+body.bridge-page .bridge-summary-grid {
+  align-items: start;
+}
+
+body.bridge-page .bridge-role-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+body.bridge-page .bridge-role-card {
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+  border-radius: 24px;
+}
+
+body.bridge-page .bridge-role-card .skill-tag-list {
+  margin-top: 0;
+}
+
+body.bridge-page .bridge-role-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+}
+
+body.bridge-page .section-head-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+body.bridge-page .bridge-footer {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 22px 24px;
+}
+
+body.bridge-page .bridge-footer-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #c58a5f, #a46b46);
+  position: relative;
+}
+
+body.bridge-page .bridge-footer-icon::before {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+}
+
+body.bridge-page .bridge-footer-copy h2 {
+  margin: 0 0 6px;
+  font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+  font-size: clamp(2rem, 3vw, 3.2rem);
+}
+
+body.bridge-page .bridge-footer-copy p {
+  margin: 0;
+}
+
+body.bridge-page .bridge-footer-note {
+  text-align: center;
+  color: var(--warm-gray);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+@media (max-width: 1100px) {
+  body.bridge-page .bridge-hero,
+  body.bridge-page .bridge-current-grid,
+  body.bridge-page .bridge-summary-grid,
+  body.bridge-page .bridge-holder-grid,
+  body.bridge-page .bridge-role-grid,
+  body.bridge-page .bridge-footer {
+    grid-template-columns: 1fr;
+  }
+
+  body.bridge-page .bridge-footer {
+    justify-items: start;
+  }
 }
 
 @media (max-width: 1100px) {

@@ -191,6 +191,21 @@ def index():
     )
 
 
+def _resolve_bridge_session(session_id: str | None = None) -> dict[str, object] | None:
+    if session_id:
+        try:
+            return load_session_data(session_id)
+        except FileNotFoundError:
+            return None
+    sessions = list_session_summaries(limit=1)
+    if not sessions:
+        return None
+    try:
+        return load_session_data(str(sessions[0].get("session_id", "")).strip())
+    except FileNotFoundError:
+        return None
+
+
 @app.route("/process", methods=["POST"])
 def process():
     master_file = request.files.get("master_clip")
@@ -612,6 +627,90 @@ def judge(session_id: str):
     else:
         data["ghost_motion_overlay_url"] = ""
     return render_template("judge.html", data=data)
+
+
+@app.route("/bridge")
+def bridge_page():
+    bridge_session_id = (request.args.get("session_id") or "").strip() or None
+    data = _resolve_bridge_session(bridge_session_id)
+    if not data:
+        data = {
+            "session_id": "",
+            "created_at": "",
+            "craft": "",
+            "skill_tags": [],
+            "skill_type": [],
+            "transfer_potential": [],
+            "possible_role_contexts": [],
+            "privacy_boundary": ARCHIVE_PRIVACY_BOUNDARY,
+            "job_bridge_note": "Job matching is not active in this MVP. Kiwami prepares the missing layer before job matching: reusable skill metadata.",
+            "skill_graph_profile": [],
+            "skill_graph_visual": build_skill_graph_visual([]),
+            "skill_graph_preview": {
+                "captured_skill": [],
+                "transfer_domains": [],
+                "job_bridge_note": "Job matching is not active in this MVP. Kiwami prepares the missing layer before job matching: reusable skill metadata.",
+                "privacy_boundary": ARCHIVE_PRIVACY_BOUNDARY,
+            },
+        }
+    else:
+        _archive_defaults(data)
+        data["skill_graph_visual"] = build_skill_graph_visual(data.get("skill_graph_profile", []))
+        data.setdefault("job_bridge_note", "Job matching is not active in this MVP. Kiwami prepares the missing layer before job matching: reusable skill metadata.")
+        data.setdefault("skill_graph_preview", {
+            "captured_skill": data.get("skill_tags", [])[:4],
+            "transfer_domains": data.get("transfer_potential", [])[:3],
+            "job_bridge_note": data.get("job_bridge_note", ""),
+            "privacy_boundary": data.get("privacy_boundary", ARCHIVE_PRIVACY_BOUNDARY),
+        })
+
+    recent_archive_entries = load_recent_archive_entries(limit=3, exclude_session_id=str(data.get("session_id", "")).strip() or None)
+    other_holders = recent_archive_entries[:2]
+    passed_fields = [
+        "skill_tags",
+        "skill_type",
+        "transfer_potential",
+        "possible_role_contexts",
+        "skill_graph_profile",
+    ]
+    bridge_passed = [field for field in passed_fields if data.get(field)]
+    bridge_never_passed = ["raw video", "face", "name", "audio", "private site details"]
+    role_contexts = data.get("possible_role_contexts") or ["Craft mentor", "Precision assembly trainer", "Field maintenance skill transfer", "Cultural heritage restoration support", "Education / Succession"]
+    role_cards = [
+        {
+            "title": "Craft Mentor",
+            "category": "Craft / Traditional Skills",
+            "summary": "For teaching basic hand positioning, timing, and material response to successors.",
+            "tags": ["hand stability", "timing judgment", "material response"],
+        },
+        {
+            "title": "Cultural Heritage Restoration Support",
+            "category": "Craft / Traditional Skills",
+            "summary": "For connecting preserved hand skills to restoration, teaching, and cultural succession contexts.",
+            "tags": ["craft memory", "material response", "careful handling"],
+        },
+        {
+            "title": "Precision Assembly Trainer",
+            "category": "Manufacturing / Precision Work",
+            "summary": "For transferring steady contact, pressure control, and repeatable hand movement.",
+            "tags": ["gradual pressure", "controlled release", "repeatable motion"],
+        },
+        {
+            "title": "Field Maintenance Skill Transfer",
+            "category": "Field Maintenance",
+            "summary": "For preserving practical field know-how that is difficult to explain only with manuals.",
+            "tags": ["sequence memory", "timing", "safety habit"],
+        },
+    ]
+    return render_template(
+        "bridge.html",
+        data=data,
+        bridge_passed=bridge_passed,
+        bridge_never_passed=bridge_never_passed,
+        recent_archive_entries=other_holders,
+        role_cards=role_cards,
+        role_contexts=role_contexts,
+    )
 
 
 @app.route("/export/<session_id>/markdown")
