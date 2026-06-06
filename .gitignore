@@ -1,13 +1,16 @@
 __pycache__/
 *.pyc
+.pyo
+.pyd
 .pytest_cache/
 .venv/
 venv/
+env/
 
-uploads/*
-!uploads/.gitkeep
+.env
+*.log
 
-outputs/*
-!outputs/.gitkeep
-.DS_Store
+uploads/
+outputs/
+
 .DS_Store

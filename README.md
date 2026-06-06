@@ -1,483 +1,192 @@
 # Kiwami Capture
 
-Private Edge AI for Capturing Expert Skill
+Local-first LFM application for preserving hands-on skill as Practice Memory.
 
-熟練者の一瞬を、初心者が学べるPractice Memoryへ変える。
+Kiwami Capture turns expert demonstration clips into evidence-aware guidance using selected keyframes, MediaPipe Evidence Scan, local Liquid LFM guidance, expert review, and Training JSONL export.
 
-熟練者の動きに宿る知を、次の世代のPractice Memoryへ。
+Kiwami Capture preserves skill.
+Kiwami Bridge helps that skill find where it is needed next.
 
-Kiwami Capture turns expert motion differences into Practice Memory.
+## What Kiwami Means
 
-師匠と初心者の差分を、次に練習できる稽古記憶へ変える。
+“Kiwami” means mastery, refinement, or the pursuit of the highest level of craft. In this project, it represents the point where expert skill becomes difficult to write down, but still possible to observe, preserve, and pass forward.
 
-「見て盗む」だけでは残しきれない知を、次の世代へ。
+## Challenge Theme Fit
 
-## Positioning
+This project fits the Liquid AI Challenge theme and Track 1: LFM Application Track because LFMs are the critical unlock for local, privacy-preserving skill capture.
 
-Kiwami Capture is not a Tebiki clone.
-It is not a general video summarizer.
-It is not only a SOP generator.
+Why LFMs matter here:
 
-Kiwami Capture compares a master clip and an optional practice clip, then turns the learning difference into reusable Practice Memory.
+- many craft sites, factories, and field environments cannot rely on cloud-first workflows
+- raw clips may contain private, unpublished, culturally sensitive, or site-specific knowledge
+- workshops, factories, and field sites need efficient local inference
+- the workflow is not generic summarization; it is evidence-aware Practice Memory generation
 
-Tebiki creates video manuals.
-Video-to-SOP tools create procedures.
-Kiwami Capture captures what successors fail to see.
+## Track 1 User Workflow
 
-YouTube shows the demonstration.
-Kiwami Capture preserves what successors should notice and practice.
+1. Upload expert clip
+2. Extract selected keyframes
+3. Generate MediaPipe Evidence Scan
+4. Produce frame-based observations
+5. Generate Practice Memory
+6. Show Project Explanation
+7. Allow Expert Review
+8. Export Markdown / JSON / Training JSONL
+9. Move skill metadata into Kiwami Bridge
 
-The product flow is intentionally different:
+## What Kiwami Capture Does
 
-Master Clip
-+ optional Practice Clip
-+ optional Context Layers
-→ Key Moments / Difference Capture
-→ Practice Memory
-→ Local-first Skill Archive
+Kiwami Capture is the preserve-skill layer.
 
-## Problem
+It keeps raw clips local and turns selected motion evidence into learner-facing Practice Memory.
 
-Workplace and craft training often fails at the exact point where a learner or successor needs the hidden difference that an expert makes look effortless. Manuals can describe steps. Videos can show motion. The critical cue still gets missed.
+## Kiwami Bridge
 
-## Solution
+Kiwami Bridge is the pass-skill-forward layer.
 
-Kiwami Capture starts from the expert demonstration itself. Practice Clip, Audio / Spoken Hint, and Context Note are optional layers that enrich the capture when they are available.
+It does not transfer raw video, names, faces, audio, or private workshop details. It only uses skill metadata such as:
 
-This MVP is local-first and uses Liquid LFM first, with Rule and Mock available as fallback modes.
-Liquid LFM uses a local model server for Practice Memory generation.
+- `skill_tags`
+- `skill_type`
+- `transfer_potential`
+- `possible_role_contexts`
+- `skill_graph_profile`
 
-## Why This Is Different
+Bridge categories:
 
-- It centers the expert-vs-learner gap instead of generic summarization.
-- It turns that gap into a reusable Practice Memory card.
-- It keeps raw clips local while making only the learning essence shareable.
-- It uses a real local Liquid text generation path for Practice Memory.
+- Craft / Traditional Skills
+- Manufacturing / Precision Work
+- Field Maintenance
+- High-risk / Specialized Operations
+- Education / Succession
 
-## Why Local-First / Edge AI
+Bridge purpose:
 
-Raw skill videos may contain private workplace knowledge:
+Kiwami Bridge helps preserved skill find future roles, training paths, successor contexts, and field applications. It is a privacy-safe skill profile and role discovery layer, not a full job board.
 
-- workshop techniques
-- factory processes
-- safety-sensitive operations
-- training mistakes
-- internal know-how
-- customer or site information
-- faces, hands, tools, machines, and workspace layout
+Kiwami Bridge extends the project beyond preservation. It uses only privacy-safe skill metadata, such as skill tags, skill type, transfer potential, possible role contexts, and skill graph profile, to connect preserved skills with future successors, training paths, field roles, and industries that need those abilities.
 
-Kiwami Capture keeps raw clips local and turns only the learning essence into Practice Memory.
+Most job and matching platforms start from resumes, company profiles, job titles, or personal histories. Kiwami Bridge starts from the skill itself. A master's hand stability, timing judgment, pressure control, material response, or procedural care may be useful far beyond the original workshop. It may support successor education, precision manufacturing, field maintenance, restoration work, regulated procedure training, or local training programs.
 
-## Why Liquid LFMs Fit
+Kiwami Bridge does not move raw clips, faces, names, audio, or private workshop details forward. Only the reusable skill layer moves.
 
-Liquid LFM is used in the text generation layer.
-It generates Practice Memory from structured expert and practice observations and the master hint through a local model server.
+In this sense, Kiwami Bridge is not a job board, ranking system, or public video archive. It is a privacy-safe skill-to-role bridge: a way to help preserved human skill find the people, teams, industries, and learning environments that need it next.
 
-Switch models by restarting `llama-server` with another Liquid GGUF model.
-Use `LIQUID_LFM_BASE_URL` and `LIQUID_LFM_MODEL` when needed.
+## Technical Stack
 
-## Practice Memory Optimization Loop
+| Layer | Technology | Role |
+| --- | --- | --- |
+| Web App | Flask / Jinja | Local web workflow |
+| Video Processing | OpenCV 4.11.0 | Keyframe extraction and frame handling |
+| Evidence Scan | MediaPipe 0.10.21 | Hand / motion evidence scan |
+| Numeric Runtime | NumPy 1.26.4 | Frame and processing support |
+| Runtime Metrics | psutil 7.2.2 | Session runtime memory measurement |
+| Guidance Layer | Liquid LFM / local guidance layer | Evidence-aware Practice Memory generation |
+| Review Layer | Expert Review | Human correction and approval |
+| Export Layer | Markdown / JSON / Training JSONL | Reusable memory and training data output |
+| Bridge Layer | Kiwami Bridge | Privacy-safe skill metadata transfer |
 
-Kiwami Capture does not stop at AI generation. Practice Memory can be reviewed by an expert, corrected, approved, and exported as a tuning record for skill-specific Liquid model optimization.
+## Runtime / Evidence Report
 
-## Training JSONL Export
+| Item | Status / Value | Why it matters |
+| --- | --- | --- |
+| Execution | Local-first | Keeps the workflow on-device |
+| Evidence Scan | MediaPipe enabled | Adds a hand-aware evidence layer |
+| Visual Processing | OpenCV keyframe extraction | Finds frame evidence locally |
+| Guidance Layer | Liquid LFM / local guidance layer | Generates Practice Memory locally |
+| Keyframes | 5 + Evidence Scan | Keeps the review evidence-centered |
+| Exports | Markdown / JSON / Training JSONL | Produces reusable outputs |
+| Total processing time | Recorded per session | Helps show end-to-end runtime cost |
+| Evidence scan time | Recorded per session | Helps isolate scan overhead |
+| Runtime memory | Recorded per session | Supports on-device deployment planning |
+| Device | On-site AMD Ryzen AI PC runtime will be measured during the demo | Avoids hardcoding lab-machine values |
 
-Approved sessions can be exported as JSONL. Raw videos are not included by default. The export contains structured observations, Practice Memory, and expert-reviewed corrections.
+Verified local packages:
 
-## Runtime / Deployment Path
+- MediaPipe 0.10.21
+- OpenCV 4.11.0
+- NumPy 1.26.4
+- psutil 7.2.2
 
-Current demo:
+## Privacy Boundary
 
-- Flask local app
-- OpenCV keyframe extraction
-- Liquid LFM through llama.cpp / GGUF
-
-AMD path:
-
-- Ryzen AI PC for local on-site inference
-- ROCm-ready acceleration path where available
-
-Device path:
-
-- The architecture is designed for mobile / edge deployment paths such as LEAP, and the AMD / ROCm path can accelerate local inference where available.
-
-Goal: capture on site, process on edge, keep raw demonstrations local, share only Practice Memory.
-
-## Reference Pattern Extraction
-
-The reference repositories informed the architecture, but they were not copied.
-
-What was extracted:
-
-- from `Video-to-SOP-Generator`: the upload → frame extraction → structured output workflow
-- from `SOP-LVM-ICL-Ensemble`: temporal reasoning and multimodal workflow framing
-- from `Label Studio`: human review and correction thinking
-- from `WhisperX`: timestamped speech and cue-alignment direction
-- from `sop-generator-llm-rag`: grounded document generation and versioned outputs
-
-How Kiwami Capture redesigns those patterns:
-
-Master Clip + optional Practice Clip + optional Context Layers
-→ Difference Capture / Key Moments
-→ Practice Memory
-→ Local-first Skill Archive
-
-That is the original product flow.
-The app uses familiar OSS patterns only as architectural reference points.
-
-## Default Sample
-
-Pottery Centering Technique
-
-Japanese theme: 陶芸の中心取り
-
-Why pottery works:
-
-- hand pressure
-- center wobble
-- wheel timing
-- water amount
-- finger angle
-- pause timing
-- clay surface change
-- rhythm
-- material response
-
-## Other Possible Domains
-
-- factory training
-- tool handling
-- repair work
-- food preparation
-- craft education
-- machine operation
-- safety training
-- nursing care
-- construction
-- cleaning technique
-- sports technique
-- vocational schools
-- internal workplace education
+| Data | Capture | Bridge |
+| --- | --- | --- |
+| Raw video | Stays local | Never passed |
+| Face | May appear in source clip but stays local | Never passed |
+| Name | Optional metadata for local use | Never passed |
+| Audio | Optional local context | Never passed |
+| Private site/workshop details | Local-only reference | Never passed |
+| Skill tags | Captured from evidence and Practice Memory | Passed |
+| Skill type | Derived skill classification | Passed |
+| Transfer potential | Role-direction metadata | Passed |
+| Possible role contexts | Bridge-facing context | Passed |
+| Skill graph profile | Structured skill shape | Passed |
 
 ## Core Workflow
 
-1. Upload Master Clip
-2. Optionally add Practice Clip, Audio / Spoken Hint, and Context Note
-3. Enter craft name and optional Master Hint
-4. Select analysis mode
-5. Process locally
-6. Extract key frames
-7. Generate Practice Memory
-8. Review side-by-side
-9. Edit Practice Memory
-10. Export Markdown or JSON
-11. Open Project Explanation / Judge Mode
-
-## MVP Features
-
-- Master Clip upload
-- Optional Practice Clip upload
-- Optional Audio / Spoken Hint
-- Optional Context Note / Master Hint
-- Craft name input
-- AI mode selector: Mock, Rule, Liquid LFM
-- Local key frame extraction
-- Master-only or side-by-side comparison
-- Practice Memory generation
-- Editable Practice Memory card
-- Evidence notes
-- Local-first privacy badge
-- Markdown export
-- JSON export
-- Project Explanation / Judge Mode page
-- Local session archive
-
-## Screens / Pages
-
-- `GET /` home
-- `POST /process` process upload
-- `GET /compare/<session_id>` compare
-- `GET /memory/<session_id>` practice memory
-- `POST /memory/<session_id>/update` update memory
-- `GET /judge/<session_id>` project explanation
-- `GET /export/<session_id>/markdown` export markdown
-- `GET /export/<session_id>/json` export json
-
-## Screenshots
-
-Add screenshot reference paths here:
-
-- Home: `docs/screenshots/home.png`
-- Compare: `docs/screenshots/compare.png`
-- Practice Memory: `docs/screenshots/practice-memory.png`
-- Project Explanation: `docs/screenshots/project-explanation.png`
-
-These references are intentionally optional for the stable MVP checkpoint. The image files do not need to exist yet.
-
-## Stable MVP Checkpoint
-
-This version includes:
-
-- local upload flow
-- Master-only capture with optional comparison
-- key frame extraction with safe fallback
-- Practice Memory generation
-- editable Practice Memory
-- Markdown / JSON export
-- Project Explanation page
-- Mock / Rule / Liquid LFM modes
-- local-first product positioning
+```mermaid
+flowchart LR
+  A[Expert Clip] --> B[Selected Keyframes]
+  B --> C[MediaPipe Evidence Scan]
+  C --> D[Liquid LFM / Local Guidance]
+  D --> E[Practice Memory]
+  E --> F[Expert Review]
+  F --> G[Training JSONL]
+```
 
 ## Architecture
 
-### Stack
-
-- Python
-- Flask
-- OpenCV
-- Jinja templates
-- local file storage
-- Markdown export
-- JSON export
-- CSS only
-
-### File Layout
-
-```text
-kiwami-capture/
-  README.md
-  requirements.txt
-  app.py
-  src/
-    __init__.py
-    video_processor.py
-    analyzer.py
-    schema.py
-    exporter.py
-    storage.py
-  templates/
-    index.html
-    compare.html
-    practice_memory.html
-    judge.html
-  static/
-    style.css
-  uploads/
-    .gitkeep
-  outputs/
-    .gitkeep
-  samples/
-    README.md
+```mermaid
+flowchart TB
+  U[Local Browser] --> W[Flask App]
+  W --> P[Video Processor]
+  P --> E[Evidence Scan]
+  P --> A[Archive / Session Storage]
+  W --> M[Practice Memory]
+  W --> J[Project Explanation]
+  W --> B[Kiwami Bridge]
+  A --> B
 ```
 
-### Session Storage
+## Data Flow / Privacy Boundary
 
-Each session lives under:
-
-`outputs/<session_id>/session.json`
-
-Uploaded clips are stored locally under `uploads/<session_id>/`.
-Extracted frames and exports are stored under `outputs/<session_id>/`.
-
-## Model Modes
-
-Kiwami Capture supports three model modes:
-
-- Mock
-- Rule
-- Liquid LFM
-
-### Mock
-
-Stable sample demo output for Pottery Centering Technique.
-
-### Rule
-
-Offline fallback for generic skill-memory generation from craft name and hint.
-
-### Liquid LFM
-
-Uses a local Liquid model server to generate Practice Memory from structured expert and practice observations.
-
-Local setup:
-
-1. Install llama.cpp
-2. Start the local Liquid model server with:
-   - `llama-server -hf LiquidAI/LFM2.5-1.2B-JP-GGUF`
-   - or `llama-server -hf LiquidAI/LFM2.5-1.2B-Instruct-GGUF:Q4_K_M`
-3. Run Kiwami Capture
-4. Select Liquid LFM mode
-
-## Practice Memory Schema
-
-```json
-{
-  "craft": "Pottery Centering Technique",
-  "skill_focus": "Stabilize the clay before shaping",
-  "watch_points": [
-    "hand pressure",
-    "center wobble",
-    "water amount",
-    "pause timing"
-  ],
-  "timing_cue": "the first 5 seconds after the wheel starts",
-  "motion_cue": "hands stay close and apply light, even pressure",
-  "material_cue": "the clay should rise smoothly without leaning",
-  "sound_cue": "steady wheel sound with minimal scraping",
-  "common_mistake": "pressing too hard before the clay is centered",
-  "master_hint": "Do not force the clay. Keep your hands steady, use light pressure, and wait until the center becomes stable.",
-  "practice_task": "Repeat a 20-second centering drill. Stop if the clay starts leaning, then reset your hand pressure.",
-  "evidence": [
-    "Master clip shows stable hand pressure",
-    "Practice clip shows visible center wobble",
-    "Practice clip applies pressure before the clay stabilizes"
-  ],
-  "privacy_mode": "local_only",
-  "model_mode": "mock",
-  "shareable": true
-}
+```mermaid
+flowchart LR
+  R[Raw Clip stays local] --> S[Selected evidence]
+  S --> M[Skill metadata]
+  M --> B[Kiwami Bridge]
+  B --> C[Role contexts]
 ```
 
-## Reference Repositories
+## Export Formats
 
-Primary reference:
+- Markdown
+- JSON
+- Training JSONL
 
-https://github.com/Shezan57/Video-to-SOP-Generator
+## Demo Flow
 
-Use as implementation inspiration for:
+1. Open the homepage
+2. Upload a Master Clip
+3. Optionally add a Practice Clip
+4. Process locally
+5. Review selected frames and Evidence Scan
+6. Open Practice Memory
+7. Open Project Explanation
+8. Review the runtime / evidence report
+9. Export Markdown, JSON, or Training JSONL
+10. Open Kiwami Bridge to review privacy-safe skill metadata
 
-- video upload
-- frame extraction
-- audio/transcription pipeline
-- AI analysis pipeline
-- document generation
+## Why This Matters
 
-Research reference:
+Many valuable skills are tacit. They live in hand timing, contact pressure, release control, and material response rather than in words alone.
 
-https://github.com/moucheng2017/SOP-LVM-ICL-Ensemble
+Kiwami Capture preserves those cues locally, turns them into Practice Memory, and keeps only the shareable skill layer moving forward.
 
-Use for:
+## Future Direction
 
-- video-language workflow understanding
-- SOP generation research context
-- temporal step reasoning
-
-Human review reference:
-
-https://github.com/HumanSignal/label-studio
-
-Use for:
-
-- human-in-the-loop correction idea
-- expert review workflow
-- annotation UI inspiration
-
-Speech reference:
-
-https://github.com/m-bain/whisperX
-
-Use for future:
-
-- timestamped transcription
-- speaker diarization
-- sound cue alignment
-
-SOP / RAG reference:
-
-https://github.com/praveen0777/sop-generator-llm-rag
-
-Use later for:
-
-- expanding Practice Memory into SOP
-- company manual grounding
-- versioned training documents
-
-Liquid AI references:
-
-https://www.liquid.ai/models
-
-https://huggingface.co/LiquidAI
-
-## How to Run Locally
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python app.py
-```
-
-Open:
-
-`http://127.0.0.1:5000`
-
-## Honest Implementation Status
-
-Current MVP:
-
-- local upload flow
-- key frame extraction
-- Mock, Rule, and Liquid LFM Practice Memory generation
-- side-by-side comparison UI
-- editable Practice Memory card
-- Markdown/JSON export
-- Project Explanation page
-- local-first product positioning
-
-Not added yet:
-
-- local speech transcription
-- audio cue extraction
-- vision model comparison
-- private workplace deployment
-
-## Future Roadmap
-
-### Phase 1: Local Practice Memory
-
-- Master-only capture
-- optional Practice Clip comparison
-- Practice Memory generation
-- local-first upload
-- editable learning card
-- export
-
-### Phase 2: Multi-domain Skill Capture
-
-- craft
-- factory training
-- food preparation
-- repair work
-- sports training
-- tool handling
-- safety training
-
-### Phase 3: Kiwami LFA Expansion
-
-- approved Practice Memory archive
-- SOP generation
-- learner curriculum
-- expert review history
-- team training dashboard
-- company knowledge base
-
-### Phase 4: Enterprise / Edge Deployment
-
-- local inference
-- private workshop deployment
-- on-prem training archive
-- Liquid LFM text layer improvements
-- model evaluation loop
-- secure sharing of only learning cards
-
-## Honest Limitations
-
-- Liquid Vision selected keyframe analysis is available; audio understanding is not added yet.
-- The app is intentionally small and local-first, not a full enterprise platform.
-- It is a foundation for a serious product, not the final product.
-
-## Why This Is Not Just a Mock
-
-The current product includes Mock and Rule fallbacks, but Liquid LFM also runs locally for Practice Memory generation.
-
-The important design is the local-first skill memory pipeline.
+- richer expert review and approval loops
+- broader role-context exploration in Kiwami Bridge
+- additional on-device evidence layers
+- tighter session analytics for demo and deployment planning

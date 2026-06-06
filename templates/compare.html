@@ -8,25 +8,19 @@
 </head>
 <body class="app-page compare-page">
   <div class="page-shell app-shell">
-    <section class="card app-hero">
-      <div class="app-hero-copy">
+    <section class="card app-hero compare-review-shell">
+      <div class="compare-review-copy">
         <div class="eyebrow">REVIEW</div>
         <h1 class="{% if data.visual_evidence_status != 'confirmed_craft' %}muted{% endif %}">Review selected frames. Create Practice Memory.</h1>
         <p class="muted">Master Clip remains the anchor. Practice Clip stays optional. Review the evidence before moving into learner-facing guidance.</p>
       </div>
-    </section>
 
-    <section class="card app-card">
-      <div class="section-head">
-        <div class="eyebrow">MASTER AS REFERENCE</div>
-        <h2>Claims stay grounded in selected frames, motion evidence, and local context.</h2>
-      </div>
-      <div class="app-grid compare-clip-grid {% if not data.has_practice_clip %}single{% endif %}">
+      <div class="compare-review-grid">
         <article class="app-card compare-clip-card master">
-          <div class="pill">Master Clip</div>
+          <div class="pill">Master as Reference</div>
           <h3>{{ data.uploads.master_clip.filename }}</h3>
           <p class="small muted">Duration {{ data.uploads.master_clip.metadata.duration_seconds }}s · FPS {{ data.uploads.master_clip.metadata.fps }}</p>
-          <p>Selected master frames stay visible below.</p>
+          <p>Selected frames, motion cues, and local evidence stay visible below.</p>
         </article>
 
         <article class="app-card compare-clip-card apprentice">
@@ -44,53 +38,61 @@
       </div>
     </section>
 
-    <section class="card app-card">
+    <section class="card app-card compare-keyframes-shell">
       <div class="section-head">
         <div class="eyebrow">KEYFRAMES</div>
         <h2>Selected master frames</h2>
         <p class="muted">The review stays centered on selected visual evidence.</p>
       </div>
-      {% if data.has_practice_clip %}
-        <div class="app-grid compare-keyframe-grid">
-          <div class="compare-keyframe-panel">
-            <h3>Master Frames</h3>
-            <div class="frame-grid compare-frame-grid">
-              {% for frame in master_frames %}
-                <figure class="frame-card">
-                  <img src="{{ frame.url }}" alt="{{ frame.label }}">
-                  <figcaption>{{ frame.label }}</figcaption>
-                </figure>
-              {% endfor %}
-            </div>
-          </div>
-          <div class="compare-keyframe-panel">
-            <h3>Practice Frames</h3>
-            <div class="frame-grid compare-frame-grid">
-              {% for frame in practice_frames %}
-                <figure class="frame-card">
-                  <img src="{{ frame.url }}" alt="{{ frame.label }}">
-                  <figcaption>{{ frame.label }}</figcaption>
-                </figure>
-              {% endfor %}
-            </div>
-          </div>
+      {% set default_preview = evidence_scan_frame if evidence_scan_frame else (master_frames[0] if master_frames else None) %}
+      <div class="compare-preview-shell">
+        <div class="compare-preview-copy">
+          <div class="memory-group-head">Selected Frame Preview</div>
+          <h3 id="compare-preview-title">{{ default_preview.label if default_preview else 'Selected frame preview' }}</h3>
+          <p id="compare-preview-note" class="muted">{{ default_preview.note if default_preview and default_preview.note else 'Selected frames were reviewed locally.' }}</p>
         </div>
-      {% else %}
-        <div class="compare-keyframe-panel">
-          <h3>Master Frames</h3>
-          <div class="frame-grid compare-frame-grid">
-            {% for frame in master_frames %}
-              <figure class="frame-card">
-                <img src="{{ frame.url }}" alt="{{ frame.label }}">
-                <figcaption>{{ frame.label }}</figcaption>
-              </figure>
-            {% endfor %}
-          </div>
+        <div class="compare-preview-frame">
+          {% if default_preview %}
+            <img id="compare-preview-image" src="{{ default_preview.url }}" alt="{{ default_preview.label }}">
+          {% else %}
+            <div class="compare-preview-empty">
+              <span>Selected frame preview</span>
+            </div>
+          {% endif %}
         </div>
-      {% endif %}
+      </div>
+
+      <div class="frame-grid compare-frame-grid compare-keyframe-thumb-grid">
+        {% for frame in master_frames %}
+          <figure
+            class="frame-card compare-frame-card"
+            role="button"
+            tabindex="0"
+            data-preview-url="{{ frame.url }}"
+            data-preview-title="{{ frame.label }}"
+            data-preview-note="Selected master frame"
+          >
+            <img src="{{ frame.url }}" alt="{{ frame.label }}">
+            <figcaption>{{ frame.label }}</figcaption>
+          </figure>
+        {% endfor %}
+        {% if evidence_scan_frame %}
+          <figure
+            class="frame-card compare-frame-card compare-evidence-card"
+            role="button"
+            tabindex="0"
+            data-preview-url="{{ evidence_scan_frame.url }}"
+            data-preview-title="Evidence Scan"
+            data-preview-note="{{ evidence_scan_frame.note }}"
+          >
+            <img src="{{ evidence_scan_frame.url }}" alt="Evidence Scan">
+            <figcaption>Evidence Scan</figcaption>
+          </figure>
+        {% endif %}
+      </div>
     </section>
 
-    <section class="card app-card">
+    <section class="card app-card compare-evidence-shell">
       <div class="section-head">
         <div class="eyebrow">EVIDENCE</div>
         <h2>Evidence summary</h2>
@@ -106,7 +108,7 @@
         </article>
         <article class="app-mini-card">
           <div class="memory-group-head">Hand cue</div>
-          <p>{% if data.hand_evidence_status == 'detected' %}Local keyframe and motion evidence{% elif data.hand_evidence_status == 'unavailable' %}Local keyframe and motion evidence{% elif data.hand_evidence_status == 'error' %}OpenCV motion evidence{% else %}No hands detected in the selected keyframes{% endif %}</p>
+          <p>{% if data.hand_evidence_status == 'detected' %}MediaPipe evidence{% elif data.hand_evidence_status == 'unavailable' %}Local motion evidence{% elif data.hand_evidence_status == 'error' %}OpenCV motion evidence{% else %}No hands detected in the selected frames{% endif %}</p>
         </article>
         <article class="app-mini-card">
           <div class="memory-group-head">Practice comparison</div>
@@ -134,6 +136,60 @@
         <p>{{ practice_memory.material_cue }}</p>
       </div>
     </section>
+
+    <section class="card app-card compare-actions-shell">
+      <div class="section-head">
+        <div class="eyebrow">NEXT</div>
+        <h2>Move into the next layer.</h2>
+        <p class="muted">Open Practice Memory for the lesson card or Project Explanation for the evidence view.</p>
+      </div>
+      <div class="cta-row">
+        <a class="button button-primary btn-primary" href="{{ url_for('memory', session_id=data.session_id) }}">Open Practice Memory</a>
+        <a class="button button-outline btn-secondary" href="{{ url_for('judge', session_id=data.session_id) }}">Open Project Explanation</a>
+        <a class="button button-outline btn-secondary" href="{{ url_for('index') }}">Home</a>
+      </div>
+    </section>
   </div>
+
+  <script>
+    (function () {
+      const previewImage = document.getElementById('compare-preview-image');
+      const previewTitle = document.getElementById('compare-preview-title');
+      const previewNote = document.getElementById('compare-preview-note');
+      const cards = document.querySelectorAll('.compare-frame-card');
+      if (!previewImage || !previewTitle || !previewNote || !cards.length) {
+        return;
+      }
+
+      const setPreview = (card) => {
+        const url = card.getAttribute('data-preview-url');
+        const title = card.getAttribute('data-preview-title') || 'Selected frame preview';
+        const note = card.getAttribute('data-preview-note') || 'Selected frames were reviewed locally.';
+        if (url) {
+          previewImage.src = url;
+          previewImage.alt = title;
+        }
+        previewTitle.textContent = title;
+        previewNote.textContent = note;
+      };
+
+      cards.forEach((card) => {
+        card.addEventListener('click', () => setPreview(card));
+        card.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            setPreview(card);
+          }
+        });
+      });
+
+      const evidenceCard = document.querySelector('.compare-evidence-card');
+      if (evidenceCard) {
+        setPreview(evidenceCard);
+      } else {
+        setPreview(cards[0]);
+      }
+    })();
+  </script>
 </body>
 </html>

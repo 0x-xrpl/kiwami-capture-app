@@ -450,11 +450,11 @@
               <div class="demo-grid demo-grid-2">
                 <article class="card demo-panel">
                   <div class="memory-group-head">Local-first skill capture</div>
-                  <p>Raw clips stay on this device. Kiwami extracts only the reusable skill layer: Practice Memory, evidence notes, and skill metadata.</p>
+                  <p>Raw clips stay on this device. Kiwami extracts only a shareable skill profile from selected frames, local guidance, and evidence limits.</p>
                   <div class="skill-tag-list compact">
                     <span class="skill-tag">Stays local</span>
-                    <span class="skill-tag">Skill layer</span>
-                    <span class="skill-tag">Evidence-based</span>
+                    <span class="skill-tag">Local guidance</span>
+                    <span class="skill-tag">Frame evidence</span>
                   </div>
                 </article>
                 <article class="card demo-panel">
@@ -507,6 +507,22 @@
                   <p class="muted">Skill metadata can move forward without exposing the original clip.</p>
                 </article>
               </div>
+
+              <article class="card demo-panel runtime-report-panel">
+                <div class="memory-group-head">Runtime / Evidence Report</div>
+                <dl class="info-list demo-info-list runtime-info-list">
+                  <div><dt>Execution</dt><dd>{{ latest_session.runtime_report.execution or 'Local-first' }}</dd></div>
+                  <div><dt>Evidence Scan</dt><dd>{{ latest_session.runtime_report.evidence_scan or 'MediaPipe enabled' }}</dd></div>
+                  <div><dt>Visual Processing</dt><dd>{{ latest_session.runtime_report.visual_processing or 'OpenCV keyframe extraction' }}</dd></div>
+                  <div><dt>Guidance Layer</dt><dd>{{ latest_session.runtime_report.guidance_layer or 'Liquid LFM / local guidance layer' }}</dd></div>
+                  <div><dt>Keyframes</dt><dd>{{ latest_session.runtime_report.keyframes or '5 + Evidence Scan' }}</dd></div>
+                  <div><dt>Exports</dt><dd>{{ latest_session.runtime_report.exports or 'Markdown / JSON / Training JSONL' }}</dd></div>
+                  <div><dt>Total Processing</dt><dd>{% if latest_session.runtime_report.processing_time_seconds != '' %}{{ latest_session.runtime_report.processing_time_seconds }}s{% else %}Recorded per session{% endif %}</dd></div>
+                  <div><dt>Evidence Scan Time</dt><dd>{% if latest_session.runtime_report.evidence_scan_time_seconds != '' %}{{ latest_session.runtime_report.evidence_scan_time_seconds }}s{% else %}Recorded per session{% endif %}</dd></div>
+                  <div><dt>Runtime Memory</dt><dd>{% if latest_session.runtime_report.memory_mb != '' and latest_session.runtime_report.memory_mb is not none %}{{ latest_session.runtime_report.memory_mb }} MB{% else %}Recorded per session{% endif %}</dd></div>
+                  <div><dt>Package Versions</dt><dd>MediaPipe {{ latest_session.runtime_report.package_versions.mediapipe }}, OpenCV {{ latest_session.runtime_report.package_versions.opencv }}, NumPy {{ latest_session.runtime_report.package_versions.numpy }}, psutil {{ latest_session.runtime_report.package_versions.psutil }}</dd></div>
+                </dl>
+              </article>
             {% else %}
               <div class="demo-placeholder">
                 <p>Capture a master clip to generate Review, Practice Memory, and Bridge Preview.</p>

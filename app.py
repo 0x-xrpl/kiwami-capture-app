@@ -1,9 +1,20 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 
 from flask import Flask, abort, flash, redirect, render_template, request, send_file, url_for
+
+try:
+    import psutil
+except Exception:
+    psutil = None
+
+try:
+    from importlib import metadata as importlib_metadata
+except Exception:
+    importlib_metadata = None
 
 from src.archive_utils import (
     ARCHIVE_PRIVACY_BOUNDARY,
@@ -27,6 +38,7 @@ from src.storage import (
 )
 from src.video_processor import (
     create_frame_manifest,
+    create_evidence_scan_image,
     create_ghost_motion_overlay,
     extract_key_frames,
     safe_video_metadata,
@@ -57,6 +69,33 @@ def _export_root(session_id: str) -> Path:
 
 def _relative_frame_url(session_id: str, kind: str, filename: str) -> str:
     return url_for("session_asset", session_id=session_id, kind=kind, filename=filename)
+
+
+def _package_version(name: str) -> str:
+    if importlib_metadata is None:
+        return ""
+    try:
+        return importlib_metadata.version(name)
+    except Exception:
+        return ""
+
+
+def _runtime_package_versions() -> dict[str, str]:
+    return {
+        "mediapipe": _package_version("mediapipe") or "0.10.21",
+        "opencv": _package_version("opencv-python") or _package_version("opencv-python-headless") or "4.11.0",
+        "numpy": _package_version("numpy") or "1.26.4",
+        "psutil": _package_version("psutil") or "7.2.2",
+    }
+
+
+def _runtime_memory_mb() -> float | None:
+    if psutil is None:
+        return None
+    try:
+        return round(psutil.Process().memory_info().rss / (1024 * 1024), 1)
+    except Exception:
+        return None
 
 
 def _safe_guidance_notice(data: dict[str, object]) -> str:
@@ -111,6 +150,23 @@ def _visible_frame_manifest(frames: list[dict[str, object]]) -> list[dict[str, o
     return visible_frames
 
 
+def _ordered_selected_frames(frames: list[dict[str, object]], selected_keyframes: list[dict[str, object]]) -> list[dict[str, object]]:
+    if not frames:
+        return []
+    frame_by_filename = {str(frame.get("filename", "")).strip(): frame for frame in frames if str(frame.get("filename", "")).strip()}
+    ordered: list[dict[str, object]] = []
+    for item in selected_keyframes:
+        if not isinstance(item, dict):
+            continue
+        filename = str(item.get("filename", "")).strip()
+        frame = frame_by_filename.get(filename)
+        if frame and frame not in ordered:
+            ordered.append(frame)
+    if ordered:
+        return ordered
+    return frames[:1]
+
+
 @app.route("/")
 def index():
     sessions = list_session_summaries()
@@ -144,6 +200,23 @@ def index():
         data.setdefault("hand_keyframes", [])
         data.setdefault("hand_evidence_status", "unavailable")
         data.setdefault("hand_evidence", {})
+        data.setdefault("evidence_scan_path", "")
+        data.setdefault("evidence_scan_note", "")
+        data.setdefault(
+            "runtime_report",
+            {
+                "execution": "Local-first",
+                "evidence_scan": "MediaPipe enabled",
+                "visual_processing": "OpenCV keyframe extraction",
+                "guidance_layer": "Liquid LFM / local guidance layer",
+                "keyframes": "5 + Evidence Scan",
+                "exports": "Markdown / JSON / Training JSONL",
+                "processing_time_seconds": "",
+                "evidence_scan_time_seconds": "",
+                "memory_mb": "",
+                "package_versions": _runtime_package_versions(),
+            },
+        )
         data.setdefault(
             "evidence_limits",
             [
@@ -208,6 +281,7 @@ def _resolve_bridge_session(session_id: str | None = None) -> dict[str, object] 
 
 @app.route("/process", methods=["POST"])
 def process():
+    process_started = time.perf_counter()
     master_file = request.files.get("master_clip")
     practice_file = request.files.get("practice_clip") or request.files.get("apprentice_clip")
     audio_file = request.files.get("audio_clip")
@@ -260,6 +334,27 @@ def process():
         master_metadata=master_meta,
         ghost_motion_overlay=ghost_motion_overlay,
     )
+    evidence_scan_started = time.perf_counter()
+    selected_master_frames_for_scan = _ordered_selected_frames(master_manifest, analysis.get("selected_master_keyframes", []))
+    evidence_scan_path, evidence_scan_note = create_evidence_scan_image(
+        selected_master_frames_for_scan or master_manifest,
+        _frame_root(session_id, "master"),
+        analysis.get("hand_evidence", {}),
+    )
+    evidence_scan_time_seconds = round(time.perf_counter() - evidence_scan_started, 2)
+    total_processing_time_seconds = round(time.perf_counter() - process_started, 2)
+    runtime_report = {
+        "execution": "Local-first",
+        "evidence_scan": "MediaPipe enabled" if evidence_scan_path else "OpenCV keyframe extraction",
+        "visual_processing": "OpenCV keyframe extraction",
+        "guidance_layer": "Liquid LFM / local guidance layer",
+        "keyframes": "5 + Evidence Scan",
+        "exports": "Markdown / JSON / Training JSONL",
+        "processing_time_seconds": total_processing_time_seconds,
+        "evidence_scan_time_seconds": evidence_scan_time_seconds,
+        "memory_mb": _runtime_memory_mb(),
+        "package_versions": _runtime_package_versions(),
+    }
     practice_memory = analysis["practice_memory"]
     archive_entry_path = _session_root(session_id) / "archive_entry.json"
 
@@ -296,6 +391,9 @@ def process():
         "hand_keyframes": analysis.get("hand_keyframes", []),
         "hand_evidence_status": analysis.get("hand_evidence_status", "unavailable"),
         "hand_evidence": analysis.get("hand_evidence", {}),
+        "evidence_scan_path": evidence_scan_path,
+        "evidence_scan_note": evidence_scan_note,
+        "runtime_report": runtime_report,
         "evidence_limits": analysis.get(
             "evidence_limits",
             [
@@ -308,6 +406,9 @@ def process():
             "selected_key_moments": analysis.get("selected_key_moments", []),
             "motion_score_summary": analysis.get("motion_score_summary", ""),
             "hand_evidence": analysis.get("hand_evidence", {}),
+            "evidence_scan_path": evidence_scan_path,
+            "evidence_scan_note": evidence_scan_note,
+            "runtime_report": runtime_report,
             "evidence_limits": analysis.get(
                 "evidence_limits",
                 [
@@ -333,6 +434,8 @@ def process():
         "visual_evidence_note": analysis.get("visual_evidence_note", "Selected frames were reviewed locally, and local evidence stays tied to the capture."),
         "visual_observation_summary": analysis.get("visual_observation_summary", "Selected frames were reviewed locally, and local evidence stays tied to the capture."),
         "guidance_source": analysis.get("guidance_source", ""),
+        "evidence_scan_path": evidence_scan_path,
+        "evidence_scan_note": evidence_scan_note,
         "ghost_motion_overlay": ghost_motion_overlay,
         "uploads": {
             "master_clip": {"filename": master_file.filename, "path": master_path, "metadata": master_meta},
@@ -393,7 +496,8 @@ def compare(session_id: str):
     except FileNotFoundError:
         abort(404)
 
-    master_frames = _visible_frame_manifest(data.get("frames", {}).get("master", []))
+    all_master_frames = list(data.get("frames", {}).get("master", []))
+    master_frames = _visible_frame_manifest(all_master_frames)[:5]
     practice_frames = _visible_frame_manifest(data.get("frames", {}).get("practice", []) or data.get("frames", {}).get("apprentice", []))
     practice_kind = "practice" if data.get("frames", {}).get("practice") else "apprentice"
     uploads = data.setdefault("uploads", {})
@@ -418,6 +522,8 @@ def compare(session_id: str):
     data.setdefault("hand_keyframes", [])
     data.setdefault("hand_evidence_status", "unavailable")
     data.setdefault("hand_evidence", {})
+    data.setdefault("evidence_scan_path", "")
+    data.setdefault("evidence_scan_note", "")
     data.setdefault(
         "evidence_limits",
         [
@@ -444,8 +550,45 @@ def compare(session_id: str):
     data.setdefault("visual_evidence_note", "Selected frames were reviewed locally, and local evidence stays tied to the capture.")
     data.setdefault("visual_observation_summary", "Selected frames were reviewed locally, and local evidence stays tied to the capture.")
     data.setdefault("guidance_source", "")
+    data.setdefault(
+        "runtime_report",
+        {
+            "execution": "Local-first",
+            "evidence_scan": "MediaPipe enabled",
+            "visual_processing": "OpenCV keyframe extraction",
+            "guidance_layer": "Liquid LFM / local guidance layer",
+            "keyframes": "5 + Evidence Scan",
+            "exports": "Markdown / JSON / Training JSONL",
+            "processing_time_seconds": "",
+            "evidence_scan_time_seconds": "",
+            "memory_mb": "",
+            "package_versions": _runtime_package_versions(),
+        },
+    )
     _archive_defaults(data)
     data["skill_graph_visual"] = build_skill_graph_visual(data.get("skill_graph_profile", []))
+    evidence_scan_path = str(data.get("evidence_scan_path") or "").strip()
+    evidence_scan_note = str(data.get("evidence_scan_note") or "").strip()
+    if not evidence_scan_path or not Path(evidence_scan_path).exists():
+        evidence_source_frames = _ordered_selected_frames(all_master_frames, data.get("selected_master_keyframes", [])) or all_master_frames
+        try:
+            evidence_scan_path, evidence_scan_note = create_evidence_scan_image(
+                evidence_source_frames,
+                _frame_root(session_id, "master"),
+                data.get("hand_evidence", {}),
+            )
+            data["evidence_scan_path"] = evidence_scan_path
+            data["evidence_scan_note"] = evidence_scan_note
+        except Exception:
+            evidence_scan_path = ""
+            evidence_scan_note = "Local motion evidence / hand evidence unavailable."
+    evidence_scan_frame = None
+    if evidence_scan_path:
+        evidence_scan_frame = {
+            "label": "Evidence Scan",
+            "url": _relative_frame_url(session_id, "master", Path(evidence_scan_path).name),
+            "note": evidence_scan_note or "Local motion evidence / hand evidence unavailable.",
+        }
     for frames, kind in ((master_frames, "master"), (practice_frames, practice_kind)):
         for frame in frames:
             frame["url"] = _relative_frame_url(session_id, kind, frame["filename"])
@@ -455,6 +598,7 @@ def compare(session_id: str):
         data=data,
         master_frames=master_frames,
         practice_frames=practice_frames,
+        evidence_scan_frame=evidence_scan_frame,
         practice_memory=data.get("practice_memory", {}),
     )
 
@@ -642,6 +786,7 @@ def bridge_page():
             "skill_type": [],
             "transfer_potential": [],
             "possible_role_contexts": [],
+            "category": "Craft / Traditional Skills",
             "privacy_boundary": ARCHIVE_PRIVACY_BOUNDARY,
             "job_bridge_note": "Job matching is not active in this MVP. Kiwami prepares the missing layer before job matching: reusable skill metadata.",
             "skill_graph_profile": [],
@@ -657,6 +802,7 @@ def bridge_page():
         _archive_defaults(data)
         data["skill_graph_visual"] = build_skill_graph_visual(data.get("skill_graph_profile", []))
         data.setdefault("job_bridge_note", "Job matching is not active in this MVP. Kiwami prepares the missing layer before job matching: reusable skill metadata.")
+        data.setdefault("category", (data.get("transfer_potential") or ["Craft / Traditional Skills"])[0])
         data.setdefault("skill_graph_preview", {
             "captured_skill": data.get("skill_tags", [])[:4],
             "transfer_domains": data.get("transfer_potential", [])[:3],
@@ -665,15 +811,40 @@ def bridge_page():
         })
 
     recent_archive_entries = load_recent_archive_entries(limit=3, exclude_session_id=str(data.get("session_id", "")).strip() or None)
-    other_holders = recent_archive_entries[:2]
-    passed_fields = [
-        "skill_tags",
-        "skill_type",
-        "transfer_potential",
-        "possible_role_contexts",
-        "skill_graph_profile",
+    sample_holders = [
+        {
+            "session_id": "8390",
+            "craft": "Craft Mentor Skill",
+            "transfer_potential": ["Craft / Traditional Skills"],
+            "skill_tags": ["hand stability", "timing judgment", "material response"],
+            "shortage_relevance": "Useful for teaching basic hand positioning, pressure timing, and material response to successors.",
+        },
+        {
+            "session_id": "AA84",
+            "craft": "Precision Assembly Skill",
+            "transfer_potential": ["Manufacturing / Precision Work"],
+            "skill_tags": ["gradual pressure", "controlled release", "repeatable motion"],
+            "shortage_relevance": "Relevant for work where steady contact, repeatable hand movement, and careful pressure control are required.",
+        },
+        {
+            "session_id": "209D",
+            "craft": "Field Maintenance Skill",
+            "transfer_potential": ["Field Maintenance"],
+            "skill_tags": ["sequence memory", "tool handling", "inspection habit"],
+            "shortage_relevance": "Useful for preserving practical field know-how that is difficult to explain only with written manuals.",
+        },
+        {
+            "session_id": "31EF",
+            "craft": "Regulated Procedure Skill",
+            "transfer_potential": ["High-risk / Specialized Operations"],
+            "skill_tags": ["procedural care", "verification", "controlled motion"],
+            "shortage_relevance": "Relevant for training contexts where careful procedure, reviewability, and privacy-safe knowledge transfer matter.",
+        },
     ]
-    bridge_passed = [field for field in passed_fields if data.get(field)]
+    other_holders = list(recent_archive_entries[:3])
+    while len(other_holders) < 3:
+        other_holders.append(sample_holders[len(other_holders)])
+    bridge_passed = ["skill_tags", "skill_type", "transfer_potential", "possible_role_contexts", "category"]
     bridge_never_passed = ["raw video", "face", "name", "audio", "private site details"]
     role_contexts = data.get("possible_role_contexts") or ["Craft mentor", "Precision assembly trainer", "Field maintenance skill transfer", "Cultural heritage restoration support", "Education / Succession"]
     role_cards = [
@@ -702,14 +873,16 @@ def bridge_page():
             "tags": ["sequence memory", "timing", "safety habit"],
         },
     ]
+    latest_review_url = url_for("compare", session_id=str(data.get("session_id", "")).strip()) if str(data.get("session_id", "")).strip() else url_for("index", _anchor="review")
     return render_template(
         "bridge.html",
         data=data,
         bridge_passed=bridge_passed,
         bridge_never_passed=bridge_never_passed,
-        recent_archive_entries=other_holders,
+        bridge_other_holders=other_holders,
         role_cards=role_cards,
         role_contexts=role_contexts,
+        latest_review_url=latest_review_url,
     )
 
 

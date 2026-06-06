@@ -8,6 +8,11 @@ import cv2
 import numpy as np
 from werkzeug.utils import secure_filename
 
+try:
+    import mediapipe as mp
+except Exception:
+    mp = None
+
 
 def save_uploaded_video(file, upload_dir: str | Path, prefix: str) -> str:
     upload_dir = Path(upload_dir)
@@ -169,6 +174,109 @@ def _label_box(image: np.ndarray, text: str, x: int, y: int) -> None:
     text_x = left + padding_x
     text_y = top + padding_y + text_height
     cv2.putText(image, text, (text_x, text_y), font, scale, (17, 17, 17), thickness, cv2.LINE_AA)
+
+
+def _evidence_banner(image: np.ndarray, title: str, subtitle: str) -> None:
+    _label_box(image, title, 34, 28)
+    _label_box(image, "Evidence Scan", 34, 72)
+    if subtitle:
+        cv2.putText(
+            image,
+            subtitle,
+            (34, min(image.shape[0] - 28, 126)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.64,
+            (77, 72, 66),
+            2,
+            cv2.LINE_AA,
+        )
+
+
+def create_evidence_scan_image(selected_frames: list[dict[str, Any]], output_dir: str | Path, hand_evidence: dict[str, Any] | None = None) -> tuple[str, str]:
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    hand_evidence = hand_evidence or {}
+
+    selected_paths: list[str] = []
+    for frame in selected_frames:
+        path = str(frame.get("path", "")).strip()
+        if path and Path(path).exists() and not Path(path).name.startswith("fallback_"):
+            selected_paths.append(path)
+
+    source_path = selected_paths[len(selected_paths) // 2] if selected_paths else ""
+    if source_path:
+        image = cv2.imread(source_path)
+    else:
+        image = None
+
+    if image is None:
+        image = np.full((720, 1280, 3), 247, dtype=np.uint8)
+        cv2.rectangle(image, (40, 40), (1240, 680), (229, 222, 210), 2)
+        cv2.putText(image, "Evidence Scan", (80, 160), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (17, 17, 17), 3, cv2.LINE_AA)
+        cv2.putText(image, "Local motion evidence", (80, 250), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (184, 137, 69), 2, cv2.LINE_AA)
+        cv2.putText(
+            image,
+            "Selected frames were reviewed locally.",
+            (80, 334),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.82,
+            (77, 72, 66),
+            2,
+            cv2.LINE_AA,
+        )
+        cv2.putText(
+            image,
+            "Hand evidence unavailable.",
+            (80, 390),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.82,
+            (102, 102, 102),
+            2,
+            cv2.LINE_AA,
+        )
+    else:
+        height, width = image.shape[:2]
+        if width > 1280:
+            ratio = 1280 / float(width)
+            image = cv2.resize(image, (1280, max(1, int(height * ratio))), interpolation=cv2.INTER_AREA)
+        title = "OpenCV motion"
+        subtitle = "Local motion evidence / hand evidence unavailable"
+        if mp is not None and str(hand_evidence.get("hand_evidence_status", "")).strip() == "detected":
+            try:
+                hands = mp.solutions.hands.Hands(
+                    static_image_mode=True,
+                    max_num_hands=2,
+                    min_detection_confidence=0.5,
+                    min_tracking_confidence=0.5,
+                )
+            except Exception:
+                hands = None
+            if hands is not None:
+                with hands:
+                    try:
+                        rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                        results = hands.process(rgb)
+                    except Exception:
+                        results = None
+                    if results and results.multi_hand_landmarks:
+                        drawing_utils = mp.solutions.drawing_utils
+                        for landmarks in results.multi_hand_landmarks:
+                            drawing_utils.draw_landmarks(
+                                image,
+                                landmarks,
+                                mp.solutions.hands.HAND_CONNECTIONS,
+                            )
+                        title = "MediaPipe"
+                        subtitle = "Hand landmarks drawn on the selected frame"
+        _evidence_banner(image, title, subtitle)
+
+    output_path = output_dir / "evidence_scan.png"
+    cv2.imwrite(str(output_path), image)
+    if mp is None or str(hand_evidence.get("hand_evidence_status", "")).strip() != "detected":
+        note = "Local motion evidence / hand evidence unavailable."
+    else:
+        note = "MediaPipe hand landmarks drawn on the selected frame."
+    return str(output_path), note
 
 
 def create_ghost_motion_overlay(master_frames: list[dict[str, Any]], output_dir: str | Path) -> str:

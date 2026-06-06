@@ -8,30 +8,6 @@
 </head>
 <body class="app-page bridge-page">
   <div class="page-shell app-shell">
-    <header class="topbar app-topbar">
-      <a class="brand" href="{{ url_for('index') }}" aria-label="Kiwami Bridge home">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-copy">
-          <strong>Kiwami Bridge</strong>
-          <span>Privacy-safe skill bridge</span>
-        </span>
-      </a>
-
-      <nav class="topnav" aria-label="Primary">
-        <a href="{{ url_for('index') }}">Capture</a>
-        <a href="{{ url_for('index') }}#review">Review</a>
-        <a href="{{ url_for('index') }}#practice-memory">Practice Memory</a>
-        <a href="{{ url_for('index') }}#project-explanation">Project Explanation</a>
-        <a href="{{ url_for('index') }}#archive">Archive</a>
-        <a class="active" href="{{ url_for('bridge_page', session_id=data.session_id) }}">Bridge</a>
-      </nav>
-
-      <div class="topbar-actions">
-        <span class="status-pill"><i></i> Local only</span>
-        <a class="button button-primary btn-primary" href="{{ url_for('index') }}#capture">Create Capture</a>
-      </div>
-    </header>
-
     <section class="card bridge-hero">
       <div class="bridge-hero-copy">
         <div class="eyebrow">KIWAMI BRIDGE</div>
@@ -47,8 +23,8 @@
         <div class="bridge-rail-section">
           <div class="bridge-rail-label">Passed to Bridge</div>
           <ul class="bridge-status-list">
-            {% for item in (bridge_passed if bridge_passed else ['skill_tags', 'skill_type', 'transfer_potential', 'possible_role_contexts', 'category']) %}
-              <li><span class="bridge-status-dot ok"></span><span>{{ item }}</span></li>
+            {% for item in (bridge_passed if bridge_passed else ['skill_tags', 'skill_type', 'transfer_potential', 'possible_role_contexts', 'skill_graph_profile']) %}
+              <li><span class="bridge-status-dot ok">✓</span><span>{{ item }}</span></li>
             {% endfor %}
           </ul>
         </div>
@@ -56,14 +32,14 @@
           <div class="bridge-rail-label">Never Passed</div>
           <ul class="bridge-status-list bridge-muted">
             {% for item in (bridge_never_passed if bridge_never_passed else ['raw video', 'face', 'name', 'audio', 'private site details']) %}
-              <li><span class="bridge-status-dot no"></span><span>{{ item }}</span></li>
+              <li><span class="bridge-status-dot no">×</span><span>{{ item }}</span></li>
             {% endfor %}
           </ul>
         </div>
       </aside>
     </section>
 
-    <section class="card bridge-section">
+    <section class="card bridge-section" id="current-skill-holder">
       <div class="section-head">
         <div class="eyebrow">CURRENT SKILL HOLDER</div>
         <h2>Skill Holder Profile</h2>
@@ -121,6 +97,30 @@
       </div>
     </section>
 
+    <section class="card bridge-section">
+      <div class="section-head">
+        <div class="eyebrow">ROLE MATCHES</div>
+        <h2>Explore meaningful ways your skills can be passed on and applied.</h2>
+      </div>
+      <div class="bridge-role-grid">
+        {% for role in role_cards %}
+          <article class="card bridge-role-card">
+            <h3>{{ role.title }}</h3>
+            <div class="bridge-role-category">{{ role.category }}</div>
+            <p>{{ role.summary }}</p>
+            <div class="skill-tag-list compact">
+              {% for tag in role.tags %}
+                <span class="skill-tag">{{ tag }}</span>
+              {% endfor %}
+            </div>
+            <div class="bridge-role-actions">
+              <a class="button button-outline btn-secondary" href="#other-skill-holders">View Role Context</a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
     <section class="card bridge-section" id="other-skill-holders">
       <div class="section-head section-head-row">
         <div>
@@ -130,15 +130,15 @@
         <a class="button button-outline btn-secondary" href="#other-skill-holders">Browse More Profiles</a>
       </div>
       <div class="bridge-holder-grid">
-        {% for session in (recent_archive_entries if recent_archive_entries else []) %}
+        {% for session in bridge_other_holders %}
           <article class="card bridge-holder-card">
             <div class="bridge-holder-top">
               <div class="bridge-avatar"><span></span></div>
-              <div>
+              <div class="bridge-holder-heading">
                 <div class="bridge-holder-id">KWM-{{ session.session_id[:4].upper() }}</div>
                 <h3>{{ session.craft or 'Untitled skill' }}</h3>
-                <div class="bridge-holder-category">{{ session.transfer_potential[0] if session.transfer_potential else 'Craft / Traditional Skills' }}</div>
               </div>
+              <div class="bridge-holder-category">{{ session.transfer_potential[0] if session.transfer_potential else 'Craft / Traditional Skills' }}</div>
             </div>
             <div class="skill-tag-list compact">
               {% for tag in (session.skill_tags[:3] if session.skill_tags else ['brush pressure', 'stroke timing', 'surface control']) %}
@@ -150,31 +150,11 @@
               <a class="button button-outline btn-secondary" href="{{ url_for('compare', session_id=session.session_id) }}">Open Skill Profile</a>
             </div>
           </article>
-        {% else %}
-          <article class="card bridge-holder-card">
-            <div class="bridge-holder-top">
-              <div class="bridge-avatar"><span></span></div>
-              <div>
-                <div class="bridge-holder-id">KWM-1042</div>
-                <h3>Example Profile</h3>
-                <div class="bridge-holder-category">Craft / Traditional Skills</div>
-              </div>
-            </div>
-            <div class="skill-tag-list compact">
-              <span class="skill-tag">hand stability</span>
-              <span class="skill-tag">timing judgment</span>
-              <span class="skill-tag">material response</span>
-            </div>
-            <p>Metadata only. No raw clip, no face, no name, no private workshop detail.</p>
-            <div class="bridge-holder-actions">
-              <a class="button button-outline btn-secondary" href="{{ url_for('index') }}">Open Skill Profile</a>
-            </div>
-          </article>
         {% endfor %}
       </div>
     </section>
 
-    <section class="card bridge-section">
+    <section class="card bridge-section" id="skill-profile-summary">
       <div class="section-head">
         <div class="eyebrow">SKILL PROFILE SUMMARY</div>
         <p class="muted">Only metadata about the skill profile moves forward. Raw capture stays local.</p>
@@ -201,41 +181,11 @@
       </div>
     </section>
 
-    <section class="card bridge-section">
-      <div class="section-head">
-        <div class="eyebrow">ROLE MATCHES</div>
-        <h2>Explore meaningful ways your skills can be passed on and applied.</h2>
-      </div>
-      <div class="bridge-role-grid">
-        {% for role in role_cards %}
-          <article class="card bridge-role-card">
-            <h3>{{ role.title }}</h3>
-            <div class="bridge-role-category">{{ role.category }}</div>
-            <p>{{ role.summary }}</p>
-            <div class="skill-tag-list compact">
-              {% for tag in role.tags %}
-                <span class="skill-tag">{{ tag }}</span>
-              {% endfor %}
-            </div>
-            <div class="bridge-role-actions">
-              <a class="button button-outline btn-secondary" href="#other-skill-holders">View Role Context</a>
-            </div>
-          </article>
-        {% endfor %}
-      </div>
-    </section>
-
-    <section class="card bridge-footer">
-      <div class="bridge-footer-icon" aria-hidden="true"></div>
-      <div class="bridge-footer-copy">
-        <h2>Kiwami Capture preserves skill.<br>Kiwami Bridge helps that skill find where it is needed next.</h2>
-        <p>Only the skill profile moves forward. The raw capture stays local.</p>
-      </div>
-      <div class="bridge-footer-actions">
-        <a class="button button-primary btn-primary" href="{{ url_for('index') }}#capture">Back to Capture</a>
-        <a class="button button-outline btn-secondary" href="#other-skill-holders">Open Skill Profile</a>
-      </div>
-    </section>
+    <div class="app-actions bridge-actions-row">
+      <a class="button button-primary btn-primary" href="{{ url_for('index') }}#capture">Back to Kiwami Capture</a>
+      <a class="button button-outline btn-secondary" href="{{ latest_review_url }}">Open latest Review</a>
+      <a class="button button-outline btn-secondary" href="#skill-profile-summary">Open Skill Profile</a>
+    </div>
 
     <p class="bridge-footer-note">Kiwami Bridge is local-first and privacy-safe by design. Your captures never leave your device.</p>
   </div>
