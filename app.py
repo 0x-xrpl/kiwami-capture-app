@@ -5,7 +5,14 @@ from pathlib import Path
 
 from flask import Flask, abort, flash, redirect, render_template, request, send_file, url_for
 
-from src.archive_utils import ARCHIVE_PRIVACY_BOUNDARY, build_archive_entry
+from src.archive_utils import (
+    ARCHIVE_PRIVACY_BOUNDARY,
+    build_archive_entry,
+    build_job_bridge_context,
+    build_skill_graph_profile,
+    build_skill_graph_visual,
+    load_recent_archive_entries,
+)
 from src.analyzer import analyze_practice
 from src.exporter import export_json, export_markdown, export_training_jsonl
 from src.schema import PracticeMemory
@@ -67,6 +74,11 @@ def _archive_defaults(data: dict[str, object]) -> dict[str, object]:
     data.setdefault("shortage_relevance", "")
     data.setdefault("privacy_boundary", ARCHIVE_PRIVACY_BOUNDARY)
     data.setdefault("archive_entry_path", "")
+    data.setdefault("job_bridge_ready", False)
+    data.setdefault("job_bridge_note", "")
+    data.setdefault("possible_role_contexts", [])
+    data.setdefault("skill_graph_profile", [])
+    data.setdefault("skill_graph_visual", {})
     return data
 
 
@@ -87,11 +99,95 @@ def _compact_parse_note(data: dict[str, object]) -> str:
     return note
 
 
+def _visible_frame_manifest(frames: list[dict[str, object]]) -> list[dict[str, object]]:
+    visible_frames: list[dict[str, object]] = []
+    for frame in frames:
+        if not isinstance(frame, dict):
+            continue
+        filename = str(frame.get("filename") or "").strip()
+        if filename.startswith("fallback_"):
+            continue
+        visible_frames.append(frame)
+    return visible_frames
+
+
 @app.route("/")
 def index():
+    sessions = list_session_summaries()
+    active_session_id = (request.args.get("session_id") or "").strip()
+    latest_session = None
+    latest_practice_memory = None
+    latest_master_frames: list[dict[str, object]] = []
+    latest_practice_frames: list[dict[str, object]] = []
+    if active_session_id:
+        try:
+            latest_session = load_session_data(active_session_id)
+        except FileNotFoundError:
+            latest_session = None
+    if latest_session:
+        data = latest_session
+        data.setdefault("has_practice_clip", bool(data.get("frames", {}).get("practice", []) or data.get("frames", {}).get("apprentice", [])))
+        data.setdefault("audio_context", "")
+        data.setdefault("tool_name", "")
+        data.setdefault("tool_type", "")
+        data.setdefault("material", "")
+        data.setdefault("process_step", "")
+        data.setdefault("frame_observations", [])
+        data.setdefault("frame_observation_summary", "")
+        data.setdefault("frame_delta_summary", "")
+        data.setdefault("frame_evidence_status", "generic_visible")
+        data.setdefault("selected_key_moments", [])
+        data.setdefault("motion_score_summary", "")
+        data.setdefault("hand_detected", False)
+        data.setdefault("hand_visible_ratio", 0.0)
+        data.setdefault("detected_hands", "unavailable")
+        data.setdefault("hand_keyframes", [])
+        data.setdefault("hand_evidence_status", "unavailable")
+        data.setdefault("hand_evidence", {})
+        data.setdefault(
+            "evidence_limits",
+            [
+                "Some physical values such as pressure are not directly measured.",
+                "Exact mastery is not scored.",
+                "Tool identity may depend on local context when frame evidence is incomplete.",
+            ],
+        )
+        data.setdefault(
+            "motion_evidence_scan",
+            {
+                "selected_key_moments": [],
+                "motion_score_summary": "",
+                "hand_evidence": {},
+                "evidence_limits": [
+                    "Some physical values such as pressure are not directly measured.",
+                    "Exact mastery is not scored.",
+                    "Tool identity may depend on local context when frame evidence is incomplete.",
+                ],
+            },
+        )
+        data.setdefault("visual_evidence_status", "weak")
+        data.setdefault("visual_evidence_note", "Selected frames were reviewed locally, and local evidence stays tied to the capture.")
+        data.setdefault("visual_observation_summary", "Selected frames were reviewed locally, and local evidence stays tied to the capture.")
+        data.setdefault("guidance_source", "")
+        _archive_defaults(data)
+        data["skill_graph_visual"] = build_skill_graph_visual(data.get("skill_graph_profile", []))
+        latest_practice_memory = PracticeMemory.from_dict(data.get("practice_memory", {}))
+        master_manifest = _visible_frame_manifest(data.get("frames", {}).get("master", []))
+        practice_manifest = _visible_frame_manifest(data.get("frames", {}).get("practice", []) or data.get("frames", {}).get("apprentice", []))
+        for frames, kind in ((master_manifest, "master"), (practice_manifest, "practice" if data.get("frames", {}).get("practice") else "apprentice")):
+            for frame in frames:
+                if isinstance(frame, dict) and frame.get("filename"):
+                    frame["url"] = _relative_frame_url(str(data.get("session_id", "")), kind, str(frame["filename"]))
+        latest_master_frames = master_manifest
+        latest_practice_frames = practice_manifest
     return render_template(
         "index.html",
-        sessions=list_session_summaries(),
+        sessions=sessions,
+        latest_session=latest_session,
+        latest_practice_memory=latest_practice_memory,
+        latest_master_frames=latest_master_frames,
+        latest_practice_frames=latest_practice_frames,
+        recent_archive_entries=load_recent_archive_entries(limit=3),
     )
 
 
@@ -188,9 +284,9 @@ def process():
         "evidence_limits": analysis.get(
             "evidence_limits",
             [
-                "Pressure is not directly measured.",
+                "Some physical values such as pressure are not directly measured.",
                 "Exact mastery is not scored.",
-                "Tool identity may be user-provided if not visually confirmed.",
+                "Tool identity may depend on local context when frame evidence is incomplete.",
             ],
         ),
         "motion_evidence_scan": {
@@ -200,9 +296,9 @@ def process():
             "evidence_limits": analysis.get(
                 "evidence_limits",
                 [
-                    "Pressure is not directly measured.",
+                    "Some physical values such as pressure are not directly measured.",
                     "Exact mastery is not scored.",
-                    "Tool identity may be user-provided if not visually confirmed.",
+                    "Tool identity may depend on local context when frame evidence is incomplete.",
                 ],
             ),
         },
@@ -219,8 +315,8 @@ def process():
         "frame_delta_summary": analysis.get("frame_delta_summary", ""),
         "frame_evidence_status": analysis.get("frame_evidence_status", "generic_visible"),
         "visual_evidence_status": analysis.get("visual_evidence_status", "weak"),
-        "visual_evidence_note": analysis.get("visual_evidence_note", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed."),
-        "visual_observation_summary": analysis.get("visual_observation_summary", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed."),
+        "visual_evidence_note": analysis.get("visual_evidence_note", "Selected frames were reviewed locally, and local evidence stays tied to the capture."),
+        "visual_observation_summary": analysis.get("visual_observation_summary", "Selected frames were reviewed locally, and local evidence stays tied to the capture."),
         "guidance_source": analysis.get("guidance_source", ""),
         "ghost_motion_overlay": ghost_motion_overlay,
         "uploads": {
@@ -245,6 +341,15 @@ def process():
         analysis=analysis,
         archive_entry_path=str(archive_entry_path),
     )
+    recent_archive_entries = load_recent_archive_entries(exclude_session_id=session_id)
+    skill_graph_profile = build_skill_graph_profile([archive_entry, *recent_archive_entries])
+    bridge_fields = build_job_bridge_context(
+        archive_entry.get("skill_tags", []),
+        archive_entry.get("skill_type", []),
+        archive_entry.get("transfer_potential", []),
+        skill_graph_profile,
+    )
+    archive_entry.update(bridge_fields)
     archive_entry_path.write_text(json.dumps(archive_entry, indent=2, ensure_ascii=False), encoding="utf-8")
     archive_fields = {
         "skill_tags": archive_entry.get("skill_tags", []),
@@ -253,12 +358,17 @@ def process():
         "shortage_relevance": archive_entry.get("shortage_relevance", ""),
         "privacy_boundary": archive_entry.get("privacy_boundary", ARCHIVE_PRIVACY_BOUNDARY),
         "archive_entry_path": archive_entry.get("archive_entry_path", str(archive_entry_path)),
+        "job_bridge_ready": archive_entry.get("job_bridge_ready", False),
+        "job_bridge_note": archive_entry.get("job_bridge_note", ""),
+        "possible_role_contexts": archive_entry.get("possible_role_contexts", []),
+        "skill_graph_profile": archive_entry.get("skill_graph_profile", []),
+        "skill_graph_visual": build_skill_graph_visual(archive_entry.get("skill_graph_profile", [])),
     }
     practice_memory.update(archive_fields)
     session_data.update(archive_fields)
     session_data["practice_memory"] = practice_memory
     save_session_data(session_id, session_data)
-    return redirect(url_for("compare", session_id=session_id))
+    return redirect(url_for("index", session_id=session_id, _anchor="review"))
 
 
 @app.route("/compare/<session_id>")
@@ -296,9 +406,9 @@ def compare(session_id: str):
     data.setdefault(
         "evidence_limits",
         [
-            "Pressure is not directly measured.",
+            "Some physical values such as pressure are not directly measured.",
             "Exact mastery is not scored.",
-            "Tool identity may be user-provided if not visually confirmed.",
+            "Tool identity may depend on local context when frame evidence is incomplete.",
         ],
     )
     data.setdefault(
@@ -308,18 +418,19 @@ def compare(session_id: str):
             "motion_score_summary": "",
             "hand_evidence": {},
             "evidence_limits": [
-                "Pressure is not directly measured.",
+                "Some physical values such as pressure are not directly measured.",
                 "Exact mastery is not scored.",
-                "Tool identity may be user-provided if not visually confirmed.",
+                "Tool identity may depend on local context when frame evidence is incomplete.",
             ],
         },
     )
     data["model_notice"] = _safe_guidance_notice(data)
     data.setdefault("visual_evidence_status", "weak")
-    data.setdefault("visual_evidence_note", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
-    data.setdefault("visual_observation_summary", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
+    data.setdefault("visual_evidence_note", "Selected frames were reviewed locally, and local evidence stays tied to the capture.")
+    data.setdefault("visual_observation_summary", "Selected frames were reviewed locally, and local evidence stays tied to the capture.")
     data.setdefault("guidance_source", "")
     _archive_defaults(data)
+    data["skill_graph_visual"] = build_skill_graph_visual(data.get("skill_graph_profile", []))
     for frames, kind in ((master_frames, "master"), (practice_frames, practice_kind)):
         for frame in frames:
             frame["url"] = _relative_frame_url(session_id, kind, frame["filename"])
@@ -361,9 +472,9 @@ def memory(session_id: str):
     data.setdefault(
         "evidence_limits",
         [
-            "Pressure is not directly measured.",
+            "Some physical values such as pressure are not directly measured.",
             "Exact mastery is not scored.",
-            "Tool identity may be user-provided if not visually confirmed.",
+            "Tool identity may depend on local context when frame evidence is incomplete.",
         ],
     )
     data.setdefault(
@@ -373,18 +484,19 @@ def memory(session_id: str):
             "motion_score_summary": "",
             "hand_evidence": {},
             "evidence_limits": [
-                "Pressure is not directly measured.",
+                "Some physical values such as pressure are not directly measured.",
                 "Exact mastery is not scored.",
-                "Tool identity may be user-provided if not visually confirmed.",
+                "Tool identity may depend on local context when frame evidence is incomplete.",
             ],
         },
     )
     data["model_notice"] = _safe_practice_notice(data)
     data.setdefault("visual_evidence_status", "weak")
-    data.setdefault("visual_evidence_note", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
-    data.setdefault("visual_observation_summary", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
+    data.setdefault("visual_evidence_note", "Selected frames were reviewed locally, and local evidence stays tied to the capture.")
+    data.setdefault("visual_observation_summary", "Selected frames were reviewed locally, and local evidence stays tied to the capture.")
     data.setdefault("guidance_source", "")
     _archive_defaults(data)
+    data["skill_graph_visual"] = build_skill_graph_visual(data.get("skill_graph_profile", []))
     return render_template(
         "practice_memory.html",
         data=data,
@@ -464,9 +576,9 @@ def judge(session_id: str):
     data.setdefault(
         "evidence_limits",
         [
-            "Pressure is not directly measured.",
+            "Some physical values such as pressure are not directly measured.",
             "Exact mastery is not scored.",
-            "Tool identity may be user-provided if not visually confirmed.",
+            "Tool identity may depend on local context when frame evidence is incomplete.",
         ],
     )
     data.setdefault(
@@ -476,18 +588,19 @@ def judge(session_id: str):
             "motion_score_summary": "",
             "hand_evidence": {},
             "evidence_limits": [
-                "Pressure is not directly measured.",
+                "Some physical values such as pressure are not directly measured.",
                 "Exact mastery is not scored.",
-                "Tool identity may be user-provided if not visually confirmed.",
+                "Tool identity may depend on local context when frame evidence is incomplete.",
             ],
         },
     )
     data["liquid_parse_note"] = _compact_parse_note(data)
     data.setdefault("visual_evidence_status", "weak")
-    data.setdefault("visual_evidence_note", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
-    data.setdefault("visual_observation_summary", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
+    data.setdefault("visual_evidence_note", "Selected frames were reviewed locally, and local evidence stays tied to the capture.")
+    data.setdefault("visual_observation_summary", "Selected frames were reviewed locally, and local evidence stays tied to the capture.")
     data.setdefault("guidance_source", "")
     _archive_defaults(data)
+    data["skill_graph_visual"] = build_skill_graph_visual(data.get("skill_graph_profile", []))
     ghost_motion_overlay = str(data.get("ghost_motion_overlay") or "").strip()
     if ghost_motion_overlay and Path(ghost_motion_overlay).exists():
         data["ghost_motion_overlay_url"] = url_for(

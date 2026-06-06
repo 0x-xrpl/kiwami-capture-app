@@ -1,9 +1,22 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+import math
 from typing import Any
 
 
 ARCHIVE_PRIVACY_BOUNDARY = "Raw video stays local. Only skill metadata can be shared."
+SKILL_GRAPH_DIMENSIONS = [
+    ("hand_stability", "Hand"),
+    ("timing_judgment", "Timing"),
+    ("material_response", "Material"),
+    ("tool_handling", "Tool"),
+    ("pressure_control", "Pressure"),
+    ("release_control", "Release"),
+    ("repetition_readiness", "Repetition"),
+    ("transfer_versatility", "Transfer"),
+]
 
 
 def _unique(values: list[str]) -> list[str]:
@@ -104,6 +117,164 @@ def _build_transfer_potential(skill_tags: list[str], blob: str) -> list[str]:
 
 def _shortage_relevance() -> str:
     return "This skill pattern is relevant where tacit hand judgment, timing, and material response are difficult to standardize through manuals alone."
+
+
+def _dimension_presence(entry: dict[str, Any]) -> dict[str, float]:
+    tags = {str(item).strip().lower() for item in entry.get("skill_tags", []) if str(item).strip()}
+    types = {str(item).strip().lower() for item in entry.get("skill_type", []) if str(item).strip()}
+    transfer = {str(item).strip().lower() for item in entry.get("transfer_potential", []) if str(item).strip()}
+    hand = entry.get("hand_evidence") or {}
+    if not isinstance(hand, dict):
+        hand = {}
+    hand_status = str(hand.get("hand_evidence_status") or entry.get("hand_evidence_status") or "").strip().lower()
+
+    def has_any(*phrases: str) -> bool:
+        return any(phrase in tags or phrase in types or phrase in transfer for phrase in phrases)
+
+    values = {
+        "hand_stability": 1.0 if hand_status == "detected" or has_any("hand stability", "fine motor control", "tool handling") else 0.0,
+        "timing_judgment": 1.0 if has_any("timing judgment", "timing control", "deliberate repetition", "slow release") else 0.0,
+        "material_response": 1.0 if has_any("material response", "material sensitivity", "craft education", "cultural heritage restoration") else 0.0,
+        "tool_handling": 1.0 if has_any("tool handling", "tool coordination", "precision assembly") else 0.0,
+        "pressure_control": 1.0 if has_any("gradual pressure", "manual precision") else 0.0,
+        "release_control": 1.0 if has_any("slow release", "release control", "food shaping") else 0.0,
+        "repetition_readiness": 1.0 if has_any("deliberate repetition", "field maintenance training", "practice") else 0.0,
+        "transfer_versatility": min(1.0, len(transfer) / 5.0) if transfer else 0.0,
+    }
+    if not any(values.values()):
+        values["hand_stability"] = 0.25
+        values["timing_judgment"] = 0.25
+        values["material_response"] = 0.25
+        values["tool_handling"] = 0.25
+    return values
+
+
+def load_recent_archive_entries(limit: int = 12, exclude_session_id: str | None = None) -> list[dict[str, Any]]:
+    outputs_dir = Path(__file__).resolve().parent.parent / "outputs"
+    if not outputs_dir.exists():
+        return []
+    entries: list[dict[str, Any]] = []
+    for child in outputs_dir.iterdir():
+        if not child.is_dir():
+            continue
+        path = child / "archive_entry.json"
+        if not path.exists():
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if not isinstance(payload, dict):
+            continue
+        if exclude_session_id and str(payload.get("session_id", "")).strip() == exclude_session_id:
+            continue
+        entries.append(payload)
+    entries.sort(key=lambda item: str(item.get("created_at", "")), reverse=True)
+    return entries[:limit]
+
+
+def build_skill_graph_profile(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    cleaned_entries = [entry for entry in entries if isinstance(entry, dict)]
+    if not cleaned_entries:
+        cleaned_entries = [{}]
+    totals = {key: 0.0 for key, _ in SKILL_GRAPH_DIMENSIONS}
+    for entry in cleaned_entries:
+        presence = _dimension_presence(entry)
+        for key, _label in SKILL_GRAPH_DIMENSIONS:
+            totals[key] += presence.get(key, 0.0)
+    count = float(len(cleaned_entries))
+    profile: list[dict[str, Any]] = []
+    for key, label in SKILL_GRAPH_DIMENSIONS:
+        average = totals[key] / count if count else 0.0
+        weight = int(round(max(0.0, min(5.0, average * 5.0))))
+        profile.append(
+            {
+                "dimension": key,
+                "label": label,
+                "weight": weight,
+                "presence": round(average, 2),
+            }
+        )
+    return profile
+
+
+def build_job_bridge_context(
+    skill_tags: list[str],
+    skill_types: list[str],
+    transfer_potential: list[str],
+    skill_graph_profile: list[dict[str, Any]],
+) -> dict[str, Any]:
+    captured_skill = [str(tag).strip() for tag in skill_tags[:4] if str(tag).strip()]
+    transfer_domains = [str(item).strip() for item in transfer_potential[:3] if str(item).strip()]
+    role_contexts = [
+        "craft mentor",
+        "precision assembly trainer",
+        "cultural heritage restoration support",
+        "repair technician training" if "repair work" in transfer_domains or "tool coordination" in skill_types else "",
+        "field maintenance skill transfer" if "field maintenance training" in transfer_domains or "timing control" in skill_types else "",
+        "hands-on education support",
+    ]
+    role_contexts = _unique([item for item in role_contexts if item])
+    job_bridge_note = (
+        "Job matching is not active in this MVP. Kiwami prepares the missing layer before job matching: reusable skill metadata."
+    )
+    return {
+        "job_bridge_ready": True,
+        "job_bridge_note": job_bridge_note,
+        "possible_role_contexts": role_contexts,
+        "skill_graph_profile": skill_graph_profile,
+        "skill_graph_preview": {
+            "captured_skill": captured_skill,
+            "transfer_domains": transfer_domains,
+            "job_bridge_note": job_bridge_note,
+            "privacy_boundary": ARCHIVE_PRIVACY_BOUNDARY,
+        },
+    }
+
+
+def build_skill_graph_visual(skill_graph_profile: list[dict[str, Any]]) -> dict[str, Any]:
+    center = 150
+    outer_radius = 88
+    label_radius = 108
+    axes: list[dict[str, Any]] = []
+    polygon_points: list[str] = []
+    count = max(1, len(SKILL_GRAPH_DIMENSIONS))
+    ordered = {str(item.get("dimension", "")).strip(): item for item in skill_graph_profile if isinstance(item, dict)}
+    for index, (key, label) in enumerate(SKILL_GRAPH_DIMENSIONS):
+        angle = -math.pi / 2 + (2 * math.pi * index / count)
+        weight = int(ordered.get(key, {}).get("weight", 0) or 0)
+        weight = max(0, min(5, weight))
+        ratio = weight / 5.0
+        x = center + math.cos(angle) * outer_radius * ratio
+        y = center + math.sin(angle) * outer_radius * ratio
+        polygon_points.append(f"{x:.1f},{y:.1f}")
+        axis_x = center + math.cos(angle) * outer_radius
+        axis_y = center + math.sin(angle) * outer_radius
+        label_x = center + math.cos(angle) * label_radius
+        label_y = center + math.sin(angle) * label_radius
+        anchors = "middle"
+        if -math.pi / 2 < angle < math.pi / 2:
+            anchors = "start"
+        elif angle > math.pi / 2 or angle < -math.pi / 2:
+            anchors = "end"
+        axes.append(
+            {
+                "label": label,
+                "weight": weight,
+                "axis_x": axis_x,
+                "axis_y": axis_y,
+                "label_x": label_x,
+                "label_y": label_y,
+                "text_anchor": anchors,
+            }
+        )
+    return {
+        "center": center,
+        "rings": [20, 40, 60, 80, 98],
+        "axes": axes,
+        "polygon_points": " ".join(polygon_points),
+        "empty": not any(item.get("weight", 0) for item in skill_graph_profile),
+    }
 
 
 def build_archive_entry(

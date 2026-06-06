@@ -6,224 +6,619 @@
   <title>Kiwami Capture</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-  <div class="page-shell home-shell">
-    <header class="topbar home-topbar">
-      <div class="brand-block">
-        <div class="eyebrow">Private Edge AI for Capturing Expert Skill</div>
-        <h1>Kiwami Capture</h1>
-        <p class="tagline">熟練者の動きに宿る知を、次の世代のPractice Memoryへ。</p>
-        <p class="jpn hero-jpn">Kiwami Captureは、熟練者の実演から、後継者や反復練習者が見逃しやすい動き・タイミング・力加減・判断の勘所を抽出し、次の稽古に活かせるPractice Memoryへ変換します。</p>
-      </div>
-      <div class="privacy-badge home-privacy">
-        <span>Local-first capture</span>
-        <p>Raw clips stay local. Only Practice Memory is shareable.</p>
+<body class="resend-home">
+  <div class="page-shell">
+    <header class="topbar home-column">
+      <a class="brand" href="#capture" aria-label="Kiwami Capture home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-copy">
+          <strong>Kiwami Capture</strong>
+          <span>Local-first AI capture</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="Primary">
+        <a href="#capture">Capture</a>
+        <a href="#review">Review</a>
+        <a href="#practice-memory">Practice Memory</a>
+        <a href="#project-explanation">Project Explanation</a>
+        <a href="#archive">Archive</a>
+        <a href="#bridge">Bridge</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <span class="status-pill"><i></i> Local only</span>
+        <a class="button button-primary btn-primary" href="#capture">Create Capture</a>
       </div>
     </header>
 
-    <section class="hero card">
-      <div class="hero-copy">
-        <p class="hero-lead">熟練者の動きに宿る知を、次の世代のPractice Memoryへ。</p>
-        <p class="hero-positioning">「見て盗む」だけでは残しきれない知を、次の世代へ。</p>
-      </div>
-      <div class="hero-note">
-        <div class="badge">What it captures</div>
-        <p>Kiwami Captureは、熟練者の実演から、後継者や反復練習者が見逃しやすい動き・タイミング・力加減・判断の勘所を抽出し、次の稽古に活かせるPractice Memoryへ変換します。</p>
-        <p class="muted">Expert Motion → Practice Memory</p>
-      </div>
-    </section>
+    <main>
+      <section id="capture" class="page-section hero">
+        <div class="section-shell capture-shell hero-shell home-column">
+          <div class="container capture-panel card hero-panel">
+            <div class="hero-card-inner">
+              <p class="eyebrow">Local-first AI capture</p>
+              <h1>From expert motion to practice memory.</h1>
+              <p class="lede">
+                Kiwami Capture turns a master demonstration into local Practice Memory, archive-ready skill metadata, and a calm path to future skill transfer.
+              </p>
 
-    <section class="workflow-strip card">
-      <div class="workflow-step"><span>1</span><strong>Upload</strong><p>Master Clip, optional Practice Clip, optional Context Layers</p></div>
-      <div class="workflow-step"><span>2</span><strong>Key Moments</strong><p>Review the expert motion and what successors should notice</p></div>
-      <div class="workflow-step"><span>3</span><strong>Practice Memory</strong><p>Turn the learning essence into a reusable card</p></div>
-      <div class="workflow-step"><span>4</span><strong>Export</strong><p>Save Markdown or JSON for local sharing</p></div>
-    </section>
+              <div class="trust-row">
+                <span class="trust-chip">Powered by Liquid LFM</span>
+                <span class="trust-chip">Local-first AI capture</span>
+                <span class="trust-chip">Device-aware local inference</span>
+              </div>
 
-    <section class="card form-card">
-      <div class="section-head">
-        <h2>Start Capture</h2>
-        <p class="muted">Master Clip is required. Practice Clip, Audio / Spoken Hint, and Context Note are optional enhancement layers.</p>
-      </div>
-      <form action="{{ url_for('process') }}" method="post" enctype="multipart/form-data" class="capture-form">
-        <label class="field-card">
-          <span class="field-title">Master Clip</span>
-          <span class="field-hint">Required. The expert demonstration you want to preserve.</span>
-          <input type="file" name="master_clip" accept="video/*" required>
-        </label>
-
-        <div class="field-card">
-          <label>
-            <span class="field-title">Craft Name</span>
-            <span class="field-hint">Example: Pottery Centering Technique</span>
-            <input type="text" name="craft" value="Pottery Centering Technique" required>
-          </label>
-        </div>
-
-        <details class="field-card optional-layers" open>
-          <summary>
-            <span class="field-title">Optional Layers</span>
-            <span class="field-hint">＋ Add Practice Clip · ＋ Add Audio / Spoken Hint · ＋ Add Context Note</span>
-          </summary>
-          <div class="optional-layer-grid">
-            <label>
-              <span class="field-title">Practice Clip</span>
-              <span class="field-hint">Optional. A learner attempt or repeated practice clip.</span>
-              <input type="file" name="practice_clip" accept="video/*">
-            </label>
-            <label>
-              <span class="field-title">Audio / Spoken Hint</span>
-              <span class="field-hint">Optional. Upload a short audio clip or voice note.</span>
-              <input type="file" name="audio_clip" accept="audio/*">
-            </label>
-            <label>
-              <span class="field-title">Audio / Spoken Hint Text</span>
-              <span class="field-hint">Optional. Paste a short transcript, work sound cue, or spoken hint.</span>
-              <textarea name="audio_context" rows="3"></textarea>
-            </label>
-            <label>
-              <span class="field-title">Context Note / Master Hint</span>
-              <span class="field-hint">Optional. Tool name, short expert explanation, or field observation.</span>
-              <textarea name="master_hint" rows="4">Do not force the clay. Keep your hands steady, use light pressure, and wait until the center becomes stable.</textarea>
-            </label>
-            <label>
-              <span class="field-title">Tool Name</span>
-              <span class="field-hint">Optional. User-provided tool label if known.</span>
-              <input type="text" name="tool_name" placeholder="User-provided / not visually confirmed">
-            </label>
-            <label>
-              <span class="field-title">Tool Type</span>
-              <span class="field-hint">Optional. Example: brush, knife, wheel, nozzle.</span>
-              <input type="text" name="tool_type" placeholder="User-provided / not visually confirmed">
-            </label>
-            <label>
-              <span class="field-title">Material</span>
-              <span class="field-hint">Optional. Example: clay, wood, metal, fabric.</span>
-              <input type="text" name="material" placeholder="User-provided / not visually confirmed">
-            </label>
-            <label>
-              <span class="field-title">Process Step</span>
-              <span class="field-hint">Optional. Example: setup, stabilize, pause, release.</span>
-              <input type="text" name="process_step" placeholder="User-provided / not visually confirmed">
-            </label>
-          </div>
-          <p class="muted small">Add a Practice Clip when direct comparison is available. Add Audio or Context Note when you want to enrich the capture.</p>
-        </details>
-
-        <div class="field-card mode-card">
-          <div class="mode-header">
-            <div>
-              <span class="field-title">AI Mode</span>
-              <span class="field-hint">Choose the level of generation you want for this session</span>
+              <div class="hero-notes">
+                <div>
+                  <strong>Master Clip first.</strong>
+                  <p>Practice Clip stays optional so the expert demonstration remains the anchor.</p>
+                </div>
+                <div>
+                  <strong>Evidence-aware.</strong>
+                  <p>Kiwami keeps claims tied to selected frames, motion evidence, and local hand evidence when available.</p>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="mode-grid">
-            <label class="mode-option primary-mode">
-              <input type="radio" name="mode" value="liquid lfm" checked>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-shell capture-shell home-column">
+          <div class="container capture-panel card">
+            <div class="card-head">
               <div>
-                <strong>Liquid LFM</strong>
-                <p>Primary local Practice Memory generation mode.</p>
+                <p class="eyebrow eyebrow-small">Create New Capture</p>
+                <h2>Turn expert motion into practice memory.</h2>
               </div>
-            </label>
-            <label class="mode-option">
-              <input type="radio" name="mode" value="rule">
-              <div>
-                <strong>Rule</strong>
-                <p>Fallback for structured skill-memory generation from the available inputs.</p>
+              <span class="mode-chip mode-primary">Powered by Liquid LFM</span>
+            </div>
+
+            <p class="panel-kicker">Local-first AI capture · Device-aware local inference</p>
+
+            <form action="{{ url_for('process') }}" method="post" enctype="multipart/form-data" class="capture-form">
+              <input type="hidden" name="mode" value="liquid lfm">
+
+              <div class="upload-grid">
+                <label class="upload-box upload-required">
+                  <div class="upload-labels">
+                    <span>Master Clip</span>
+                    <span class="tag tag-required">Required</span>
+                  </div>
+                  <div class="upload-surface">
+                    <span class="upload-icon" aria-hidden="true"></span>
+                    <strong>Upload expert demonstration</strong>
+                    <p>Master Clip is required and stays the anchor for the capture.</p>
+                    <input type="file" name="master_clip" accept="video/*" required>
+                  </div>
+                </label>
+
+                <label class="upload-box">
+                  <div class="upload-labels">
+                    <span>Practice Clip</span>
+                    <span class="tag tag-soft">Optional</span>
+                  </div>
+                  <div class="upload-surface">
+                    <span class="upload-icon" aria-hidden="true"></span>
+                    <strong>Upload learner attempt</strong>
+                    <p>Optional comparison input for later review.</p>
+                    <input type="file" name="practice_clip" accept="video/*">
+                  </div>
+                </label>
               </div>
-            </label>
-            <label class="mode-option">
-              <input type="radio" name="mode" value="mock">
-              <div>
-                <strong>Mock</strong>
-                <p>Development and demo safety output.</p>
+
+              <div class="form-grid">
+                <label class="field">
+                  <span>Craft Name</span>
+                  <input type="text" name="craft" value="Pottery Centering Technique" required>
+                </label>
+                <label class="field">
+                  <span>Tool Name</span>
+                  <input type="text" name="tool_name" placeholder="Local context only">
+                </label>
+                <label class="field">
+                  <span>Tool Type</span>
+                  <input type="text" name="tool_type" placeholder="Local context only">
+                </label>
+                <label class="field">
+                  <span>Material</span>
+                  <input type="text" name="material" placeholder="Local context only">
+                </label>
               </div>
-            </label>
+
+              <div class="compact-grid">
+                <label class="field">
+                  <span>Audio / Spoken Hint</span>
+                  <input type="file" name="audio_clip" accept="audio/*">
+                </label>
+                <label class="field">
+                  <span>Process Step</span>
+                  <input type="text" name="process_step" placeholder="Local context only">
+                </label>
+              </div>
+
+              <label class="field field-full">
+                <span>Audio / Spoken Hint Text</span>
+                <textarea name="audio_context" rows="3" placeholder="Optional transcript, work sound cue, or spoken hint."></textarea>
+              </label>
+
+              <label class="field field-full">
+                <span>Context Note / Master Hint</span>
+                <textarea name="master_hint" rows="4">Do not force the clay. Keep your hands steady, use light pressure, and wait until the center becomes stable.</textarea>
+              </label>
+
+              <div class="panel-footer">
+                <div class="local-note">
+                  <span class="status-dot"></span>
+                  <p>Raw skill videos stay on the device. Practice Memory is produced locally.</p>
+                </div>
+                <button type="submit" class="button button-primary btn-primary">Start Capture</button>
+              </div>
+            </form>
           </div>
         </div>
+      </section>
 
-        <div class="form-actions home-actions">
-          <button type="submit" class="primary-btn">Start Capture</button>
-          <div class="muted small">Local upload flow. No account required. No database required.</div>
-        </div>
-      </form>
-    </section>
+      <section id="review" class="page-section">
+        <div class="section-shell home-column">
+          <section class="card demo-section">
+            <div class="section-head">
+              <div class="eyebrow">REVIEW</div>
+              <h2>Review selected frames. Create Practice Memory.</h2>
+              <p class="muted">Master Clip remains the anchor. Practice Clip stays optional. Review evidence before moving into learner-facing guidance.</p>
+            </div>
 
-    <section class="copy-grid">
-      <div class="card">
-        <div class="eyebrow">Positioning</div>
-        <p>Kiwami Capture handles knowledge that is hard to turn into manuals. It keeps raw skill video local and turns only the learning essence into Practice Memory.</p>
-        <p class="muted">YouTube shows the demonstration. Kiwami Capture preserves what successors should notice and practice.</p>
-      </div>
-      <div class="card">
-        <div class="eyebrow">Privacy</div>
-        <p>Raw clips stay local. Only Practice Memory is shareable.</p>
-      </div>
-      <div class="card">
-        <div class="eyebrow">Why it matters</div>
-        <p>Workplaces and craft teams can preserve the learning essence without exposing the raw source video.</p>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="section-head">
-        <h2>Mode Guide</h2>
-        <p class="muted">The modes are intentionally simple. They explain how much structure the app should add today.</p>
-      </div>
-      <div class="mode-guide-grid">
-        <article class="mode-guide-card">
-          <div class="eyebrow">Primary</div>
-          <h3>Liquid LFM</h3>
-          <p>Primary local Practice Memory generation mode.</p>
-        </article>
-        <article class="mode-guide-card">
-          <div class="eyebrow">Fallback</div>
-          <h3>Rule</h3>
-          <p>Fallback for structured skill-memory generation from the available inputs.</p>
-        </article>
-        <article class="mode-guide-card">
-          <div class="eyebrow">Safety</div>
-          <h3>Mock</h3>
-          <p>Development and demo safety output.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="archive-card card">
-      <div class="section-head">
-        <h2>Local Session Archive</h2>
-        <p class="muted">Recent local captures stored on this machine.</p>
-      </div>
-      {% if sessions %}
-        <div class="session-list">
-          {% for session in sessions %}
-            <article class="session-item">
-              <div>
-                <strong>{{ session.craft or 'Untitled capture' }}</strong>
-                <p class="muted small">{{ session.session_id }} · {{ session.mode or 'mock' }} · {{ session.status or 'created' }}</p>
+            {% if latest_session %}
+              <div class="demo-grid demo-grid-2">
+                <article class="card demo-mini-card">
+                  <div class="memory-group-head">Master Clip as reference</div>
+                  <h3>{{ latest_session.uploads.master_clip.filename }}</h3>
+                  <p class="small muted">Processed locally · {{ latest_session.capture_mode or 'Local review ready' }}</p>
+                  <p>Master Clip remains the review anchor for the current session.</p>
+                </article>
+                <article class="card demo-mini-card">
+                  <div class="memory-group-head">Practice Clip optional</div>
+                  {% if latest_session.has_practice_clip and latest_session.uploads.practice_clip %}
+                    <h3>{{ latest_session.uploads.practice_clip.filename }}</h3>
+                    <p class="small muted">Optional comparison clip</p>
+                    <p>Practice evidence stays local and helps the review stay grounded.</p>
+                  {% else %}
+                    <h3>Optional</h3>
+                    <p class="small muted">No practice clip uploaded.</p>
+                    <p>Review still works with the master frames alone.</p>
+                  {% endif %}
+                </article>
               </div>
-              <div class="session-links">
-                <a href="{{ url_for('compare', session_id=session.session_id) }}">Compare</a>
-                <a href="{{ url_for('memory', session_id=session.session_id) }}">Memory</a>
-                <a href="{{ url_for('judge', session_id=session.session_id) }}">Project Explanation</a>
-              </div>
-            </article>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="muted">No sessions yet. Upload a master clip and an apprentice clip to create the first archive entry.</p>
-      {% endif %}
-    </section>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <section class="card flash">
-          {% for message in messages %}
-            <p>{{ message }}</p>
-          {% endfor %}
-        </section>
-      {% endif %}
-    {% endwith %}
+              <div class="demo-grid demo-grid-2">
+                <article class="card demo-panel">
+                  <div class="section-head">
+                    <div class="eyebrow">KEYFRAMES</div>
+                    <h2>Selected master frames</h2>
+                    <p class="muted">The review stays centered on selected visual evidence.</p>
+                  </div>
+                  {% if latest_master_frames %}
+                    <div class="frame-grid compare-frame-grid">
+                      {% for frame in latest_master_frames %}
+                        <figure class="frame-card">
+                          <img src="{{ frame.url }}" alt="{{ frame.label }}">
+                          <figcaption>{{ frame.label }}</figcaption>
+                        </figure>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    <p class="muted">Upload a Master Clip to generate selected keyframes.</p>
+                  {% endif %}
+                </article>
+
+                <article class="card demo-panel">
+                  <div class="section-head">
+                    <div class="eyebrow">EVIDENCE</div>
+                    <h2>Evidence summary</h2>
+                  </div>
+                  <div class="demo-summary-grid">
+                    <article class="app-mini-card">
+                      <div class="memory-group-head">Visual evidence</div>
+                      <p>Available</p>
+                    </article>
+                    <article class="app-mini-card">
+                      <div class="memory-group-head">Timing cue</div>
+                      <p>Observed</p>
+                    </article>
+                    <article class="app-mini-card">
+                      <div class="memory-group-head">Hand / motion evidence</div>
+                      <p>{% if latest_session.hand_evidence_status == 'detected' %}Local keyframe and motion evidence{% elif latest_session.hand_evidence_status == 'unavailable' %}Local keyframe and motion evidence{% elif latest_session.hand_evidence_status == 'error' %}OpenCV motion evidence{% else %}No hands detected in the selected keyframes{% endif %}</p>
+                    </article>
+                    <article class="app-mini-card">
+                      <div class="memory-group-head">Practice comparison</div>
+                      <p>Optional</p>
+                    </article>
+                  </div>
+                </article>
+              </div>
+
+              <div class="demo-grid demo-observation-grid">
+                <article class="card demo-observation-card">
+                  <h2>Motion Observations</h2>
+                  <p>{{ latest_session.motion_evidence_scan.motion_score_summary or latest_session.motion_score_summary or 'Selected frames and local motion cues support the review.' }}</p>
+                </article>
+                <article class="card demo-observation-card">
+                  <h2>Timing Notes</h2>
+                  <p>{{ latest_practice_memory.timing_cue if latest_practice_memory else 'Upload a Master Clip to generate timing notes.' }}</p>
+                </article>
+                <article class="card demo-observation-card">
+                  <h2>What successors should notice</h2>
+                  <p>{% if latest_session.frame_observations %}{{ latest_session.frame_observations[0] }}{% else %}Look for the steady contact point, controlled timing, and the moment of release.{% endif %}</p>
+                </article>
+                <article class="card demo-observation-card">
+                  <h2>Material / Contact Cue</h2>
+                  <p>{{ latest_practice_memory.material_cue if latest_practice_memory else 'Upload a Master Clip to generate contact cues.' }}</p>
+                </article>
+              </div>
+            {% else %}
+              <div class="demo-placeholder">
+                <p>Capture a master clip to generate Review, Practice Memory, and Bridge Preview.</p>
+                <a class="button button-primary btn-primary" href="#capture">Start Capture</a>
+              </div>
+            {% endif %}
+          </section>
+        </div>
+      </section>
+
+      <section id="practice-memory" class="page-section">
+        <div class="section-shell home-column">
+          <section class="card demo-section">
+            <div class="section-head">
+              <div class="eyebrow">PRACTICE MEMORY</div>
+              <h2>Readable guidance from selected motion.</h2>
+              <p class="muted">Only Practice Memory is shareable. Raw clips stay local.</p>
+            </div>
+
+            {% if latest_session and latest_practice_memory %}
+              <div class="demo-grid demo-memory-grid">
+                <div class="card demo-panel">
+                  <div class="section-head">
+                    <div class="eyebrow">LESSON CARD</div>
+                    <h2>Practice Memory</h2>
+                    <p class="muted">Edit the learner-facing lesson without exposing the raw clip.</p>
+                  </div>
+
+                  <form action="{{ url_for('memory_update', session_id=latest_session.session_id) }}" method="post" class="capture-form demo-memory-form" id="practice-update-form">
+                    <div class="demo-form-grid">
+                      <label class="field field-full">
+                        <span>Skill Focus</span>
+                        <input type="text" name="skill_focus" value="{{ latest_practice_memory.skill_focus }}">
+                      </label>
+
+                      <label class="field">
+                        <span>What to watch first</span>
+                        <textarea name="watch_points" rows="3">{{ watch_points_text if watch_points_text is defined else (latest_practice_memory.watch_points|join('\n')) }}</textarea>
+                      </label>
+
+                      <label class="field">
+                        <span>20-second drill</span>
+                        <textarea name="practice_task" rows="3">{{ latest_practice_memory.practice_task }}</textarea>
+                      </label>
+
+                      <label class="field">
+                        <span>Step-by-step practice</span>
+                        <textarea name="step_by_step_motion" rows="3">{{ latest_practice_memory.step_by_step_motion }}</textarea>
+                      </label>
+
+                      <label class="field">
+                        <span>What to copy</span>
+                        <textarea name="what_to_copy" rows="3">{{ latest_practice_memory.what_to_copy }}</textarea>
+                      </label>
+
+                      <label class="field">
+                        <span>What to avoid</span>
+                        <textarea name="what_to_avoid" rows="3">{{ latest_practice_memory.what_to_avoid }}</textarea>
+                      </label>
+
+                      <label class="field">
+                        <span>Success sign</span>
+                        <textarea name="success_sign" rows="3">{{ latest_practice_memory.success_sign }}</textarea>
+                      </label>
+
+                      <label class="field">
+                        <span>Next practice drill</span>
+                        <textarea name="next_practice_drill" rows="3">{{ latest_practice_memory.next_practice_drill }}</textarea>
+                      </label>
+
+                      <label class="field">
+                        <span>Common mistake</span>
+                        <textarea name="common_mistake" rows="3">{{ latest_practice_memory.common_mistake }}</textarea>
+                      </label>
+
+                      <label class="field">
+                        <span>Timing cue</span>
+                        <textarea name="timing_cue" rows="2">{{ latest_practice_memory.timing_cue }}</textarea>
+                      </label>
+
+                      <label class="field">
+                        <span>Motion cue</span>
+                        <textarea name="motion_cue" rows="3">{{ latest_practice_memory.motion_cue }}</textarea>
+                      </label>
+
+                      <label class="field">
+                        <span>Material cue</span>
+                        <textarea name="material_cue" rows="3">{{ latest_practice_memory.material_cue }}</textarea>
+                      </label>
+
+                      <label class="field field-full">
+                        <span>Evidence</span>
+                        <textarea name="evidence" rows="4">{{ evidence_text if evidence_text is defined else (latest_practice_memory.evidence|join('\n')) }}</textarea>
+                      </label>
+                    </div>
+                  </form>
+                </div>
+
+                <div class="demo-side-stack">
+                  <section class="card demo-panel">
+                    <div class="section-head">
+                      <div class="eyebrow">METADATA</div>
+                      <h2>Read-only summary</h2>
+                    </div>
+                    <dl class="info-list demo-info-list">
+                      <div><dt>User Label</dt><dd>{{ latest_practice_memory.craft }}</dd></div>
+                      <div><dt>Guidance Source</dt><dd>{{ latest_practice_memory.guidance_source or latest_session.guidance_source or 'Unspecified' }}</dd></div>
+                      <div><dt>Privacy</dt><dd>Local only</dd></div>
+                      <div><dt>Shareable</dt><dd>{{ 'Yes' if latest_practice_memory.shareable else 'No' }}</dd></div>
+                      <div><dt>Session ID</dt><dd>{{ latest_session.session_id }}</dd></div>
+                    </dl>
+                    <div class="demo-mini-stack">
+                      <article class="app-mini-card">
+                        <div class="memory-group-head">Step-by-step practice</div>
+                        <p>{{ latest_practice_memory.step_by_step_motion }}</p>
+                      </article>
+                      <article class="app-mini-card">
+                        <div class="memory-group-head">Timing cue</div>
+                        <p>{{ latest_practice_memory.timing_cue }}</p>
+                      </article>
+                      <article class="app-mini-card">
+                        <div class="memory-group-head">Motion cue</div>
+                        <p>{{ latest_practice_memory.motion_cue }}</p>
+                      </article>
+                      <article class="app-mini-card">
+                        <div class="memory-group-head">Material cue</div>
+                        <p>{{ latest_practice_memory.material_cue }}</p>
+                      </article>
+                    </div>
+                    <div class="app-actions demo-actions-row">
+                      <button type="submit" form="practice-update-form" class="button button-primary btn-primary">Save Updates</button>
+                      <a class="button button-outline btn-secondary" href="{{ url_for('export_markdown_route', session_id=latest_session.session_id) }}">Export Markdown</a>
+                      <a class="button button-outline btn-secondary" href="{{ url_for('export_json_route', session_id=latest_session.session_id) }}">Export JSON</a>
+                      <a class="button button-outline btn-secondary" href="{{ url_for('export_training_jsonl_route', session_id=latest_session.session_id) }}">Export Training JSONL</a>
+                      <a class="button button-primary btn-primary" href="#project-explanation">Open Project Explanation</a>
+                    </div>
+                  </section>
+                </div>
+              </div>
+
+              <section class="card demo-section demo-expert-section">
+                <div class="section-head">
+                  <div class="eyebrow">EXPERT REVIEW</div>
+                  <h2>Refine the lesson card.</h2>
+                  <p class="muted">AI draft, expert review, and tuning record stay in one calm card.</p>
+                </div>
+
+                <form action="{{ url_for('memory_review', session_id=latest_session.session_id) }}" method="post" class="capture-form demo-memory-form">
+                  <div class="demo-form-grid">
+                    <label class="field field-full">
+                      <span>Expert Correction</span>
+                      <textarea name="expert_correction" rows="4">{{ latest_practice_memory.expert_correction }}</textarea>
+                    </label>
+                    <label class="field field-full">
+                      <span>Reviewer Note</span>
+                      <textarea name="reviewer_note" rows="3">{{ latest_practice_memory.reviewer_note }}</textarea>
+                    </label>
+                    <label class="field field-full">
+                      <span>Skill Profile</span>
+                      <input type="text" name="skill_profile" value="{{ latest_practice_memory.skill_profile or latest_practice_memory.craft }}">
+                    </label>
+                    <label class="review-check">
+                      <input type="checkbox" name="approved_for_tuning" {% if latest_practice_memory.approved_for_tuning %}checked{% endif %}>
+                      <span>Approved for Tuning</span>
+                    </label>
+                  </div>
+                  <div class="app-actions">
+                    <button type="submit" class="button button-primary btn-primary">Save Review</button>
+                  </div>
+                </form>
+              </section>
+            {% else %}
+              <div class="demo-placeholder">
+                <p>Capture a master clip to generate Review, Practice Memory, and Bridge Preview.</p>
+                <a class="button button-primary btn-primary" href="#capture">Start Capture</a>
+              </div>
+            {% endif %}
+          </section>
+        </div>
+      </section>
+
+      <section id="project-explanation" class="page-section">
+        <div class="section-shell home-column">
+          <section class="card demo-section">
+            <div class="section-head">
+              <div class="eyebrow">PROJECT EXPLANATION</div>
+              <h2>How the result was produced. What the evidence supports.</h2>
+              <p class="muted">Kiwami keeps learning guidance grounded in selected frames, local context, and evidence limits.</p>
+            </div>
+
+            {% if latest_session %}
+              <div class="demo-grid demo-grid-2">
+                <article class="card demo-panel">
+                  <div class="memory-group-head">Local-first skill capture</div>
+                  <p>Raw clips stay on the device. Practice Memory is produced locally. Selected frames remain the source of visual evidence.</p>
+                  <div class="skill-tag-list compact">
+                    <span class="skill-tag">Privacy boundary</span>
+                    <span class="skill-tag">Local guidance</span>
+                    <span class="skill-tag">Selected frames</span>
+                  </div>
+                </article>
+                <article class="card demo-panel">
+                  <div class="memory-group-head">Evidence to skill</div>
+                  <dl class="info-list demo-info-list">
+                    <div><dt>Selected Key Moments</dt><dd>{{ latest_session.motion_evidence_scan.selected_key_moments|join(', ') if latest_session.motion_evidence_scan.selected_key_moments else 'Key frames were selected from the master clip.' }}</dd></div>
+                    <div><dt>Motion Evidence</dt><dd>{{ latest_session.motion_evidence_scan.motion_score_summary or latest_session.motion_score_summary or 'OpenCV frame change with local hand evidence when available' }}</dd></div>
+                    <div><dt>Hand Cue</dt><dd>{% if latest_session.hand_evidence_status == 'detected' %}{{ latest_session.detected_hands|title }}{% elif latest_session.hand_evidence_status == 'unavailable' %}Local keyframe and motion evidence{% elif latest_session.hand_evidence_status == 'error' %}OpenCV motion evidence{% else %}No hands detected in the selected keyframes{% endif %}</dd></div>
+                    <div><dt>Hand Visibility</dt><dd>{{ '%.0f'|format((latest_session.hand_visible_ratio or 0) * 100) }}%</dd></div>
+                  </dl>
+                </article>
+              </div>
+
+              <div class="demo-grid demo-grid-2">
+                <article class="card demo-panel">
+                  <div class="memory-group-head">Skill profile preview</div>
+                  <p>Kiwami Capture preserves skill. The captured shape stays grounded in selected frames and local context.</p>
+                  {% set skill_graph = latest_session.skill_graph_visual %}
+                  {% if skill_graph and skill_graph.axes %}
+                    <div class="skill-radar skill-graph">
+                      <svg viewBox="0 0 {{ skill_graph.center * 2 }} {{ skill_graph.center * 2 }}" role="img" aria-label="Captured skill profile preview">
+                        <g>
+                          {% for ring in skill_graph.rings %}
+                            <circle class="radar-ring" cx="{{ skill_graph.center }}" cy="{{ skill_graph.center }}" r="{{ ring }}"></circle>
+                          {% endfor %}
+                          {% for axis in skill_graph.axes %}
+                            <line class="radar-axis" x1="{{ skill_graph.center }}" y1="{{ skill_graph.center }}" x2="{{ axis.axis_x }}" y2="{{ axis.axis_y }}"></line>
+                            <text class="radar-label" x="{{ axis.label_x }}" y="{{ axis.label_y }}" text-anchor="{{ axis.text_anchor }}">{{ axis.label }}</text>
+                          {% endfor %}
+                          <polygon class="radar-polygon" points="{{ skill_graph.polygon_points }}"></polygon>
+                        </g>
+                      </svg>
+                    </div>
+                  {% endif %}
+                  <div class="skill-tag-list compact">
+                    {% for tag in (latest_session.skill_tags[:5] if latest_session.skill_tags else ['hand stability', 'gradual pressure', 'slow release', 'timing judgment', 'material response']) %}
+                      <span class="skill-tag">{{ tag }}</span>
+                    {% endfor %}
+                  </div>
+                </article>
+
+                <article class="card demo-panel">
+                  <div class="memory-group-head">Archive entry</div>
+                  <dl class="info-list demo-info-list">
+                    <div><dt>Archive saved</dt><dd>{{ 'Yes' if latest_session.archive_entry_path else 'No' }}</dd></div>
+                    <div><dt>Session ID</dt><dd>{{ latest_session.session_id }}</dd></div>
+                    <div><dt>Created At</dt><dd>{{ latest_session.created_at }}</dd></div>
+                    <div><dt>Guidance Source</dt><dd>{{ latest_session.guidance_source or 'Unspecified' }}</dd></div>
+                  </dl>
+                  <p class="muted">Skill metadata can move forward without exposing the original clip.</p>
+                </article>
+              </div>
+            {% else %}
+              <div class="demo-placeholder">
+                <p>Capture a master clip to generate Review, Practice Memory, and Bridge Preview.</p>
+                <a class="button button-primary btn-primary" href="#capture">Start Capture</a>
+              </div>
+            {% endif %}
+          </section>
+        </div>
+      </section>
+
+      <section id="archive" class="page-section">
+        <div class="section-shell home-column">
+          <section class="card demo-section">
+            <div class="section-head">
+              <div class="eyebrow">ARCHIVE</div>
+              <h2>Local captures stay on this device.</h2>
+              <p class="muted">Processed locally. Local guidance. Powered by Liquid LFM when applicable.</p>
+            </div>
+
+            {% if recent_archive_entries %}
+              <div class="demo-archive-list">
+                {% for session in recent_archive_entries[:3] %}
+                  <article class="card demo-archive-item">
+                    <div class="archive-copy">
+                      <div class="memory-group-head">{{ session.craft or 'Untitled capture' }}</div>
+                      <h3>{{ session.session_id }}</h3>
+                      <p class="small muted">{{ session.created_at }} · {{ session.status or 'processed locally' }}{% if session.mode %} · {{ session.mode }}{% endif %}</p>
+                    </div>
+                    <div class="app-actions archive-actions">
+                      <a class="button button-primary btn-primary" href="{{ url_for('compare', session_id=session.session_id) }}">Review</a>
+                      <a class="button button-outline btn-secondary" href="{{ url_for('memory', session_id=session.session_id) }}">Practice Memory</a>
+                      <a class="button button-outline btn-secondary" href="{{ url_for('judge', session_id=session.session_id) }}">Project Explanation</a>
+                    </div>
+                  </article>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="demo-placeholder">
+                <p>Archive will list local sessions after capture.</p>
+                <a class="button button-primary btn-primary" href="#capture">Start Capture</a>
+              </div>
+            {% endif %}
+          </section>
+        </div>
+      </section>
+
+      <section id="bridge" class="page-section">
+        <div class="section-shell home-column">
+          <section class="card demo-section">
+            <div class="section-head">
+              <div class="eyebrow">KIWAMI BRIDGE</div>
+              <h2>Skill can move forward without exposing the raw clip.</h2>
+              <p class="muted">Kiwami Bridge helps preserved skill find where it is needed next.</p>
+            </div>
+
+            {% if latest_session %}
+              <div class="demo-grid demo-grid-2">
+                <article class="card demo-panel">
+                  <div class="memory-group-head">Bridge preview</div>
+                  <p>Kiwami Bridge helps preserved skill find where it is needed next.</p>
+                  <ul class="clean-list">
+                    <li>Skill metadata only</li>
+                    <li>No names</li>
+                    <li>No faces</li>
+                    <li>No raw clips</li>
+                    <li>No private workshop details</li>
+                  </ul>
+                </article>
+                <article class="card demo-panel">
+                  <div class="memory-group-head">Where skill can go</div>
+                  <div class="skill-tag-list compact">
+                    {% for role in (latest_session.possible_role_contexts[:5] if latest_session.possible_role_contexts else ['Craft mentor', 'Precision assembly trainer', 'Repair technician training', 'Field maintenance skill transfer', 'Cultural heritage restoration support']) %}
+                      <span class="skill-tag">{{ role }}</span>
+                    {% endfor %}
+                  </div>
+                  <div class="skill-tag-list compact">
+                    <span class="skill-tag">Craft / Traditional Skills</span>
+                    <span class="skill-tag">Manufacturing / Precision Work</span>
+                    <span class="skill-tag">Field Maintenance</span>
+                    <span class="skill-tag">High-risk / Specialized Operations</span>
+                    <span class="skill-tag">Education / Succession</span>
+                  </div>
+                  <p class="muted">Practice Memory can move forward. Skill tags can move forward. Archive metadata can move forward.</p>
+                </article>
+              </div>
+              <div class="app-actions">
+                <a class="button button-primary btn-primary" href="#capture">Open KIWAMI BRIDGE</a>
+              </div>
+            {% else %}
+              <div class="demo-placeholder">
+                <p>Bridge Preview uses skill metadata after capture.</p>
+                <a class="button button-primary btn-primary" href="#capture">Open KIWAMI BRIDGE</a>
+              </div>
+            {% endif %}
+          </section>
+        </div>
+      </section>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <section class="page-section">
+            <div class="container">
+              <section class="card flash">
+                {% for message in messages %}
+                  <p>{{ message }}</p>
+                {% endfor %}
+              </section>
+            </div>
+          </section>
+        {% endif %}
+      {% endwith %}
+    </main>
   </div>
 </body>
 </html>

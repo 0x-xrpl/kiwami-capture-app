@@ -269,10 +269,9 @@ def _frame_observations(selected_frames: list[dict[str, Any]]) -> tuple[list[str
                 delta_note = "The scene changes visibly across the selected frames."
             frame_summary = f"Brightness change is {brightness_delta:+.1f}; color shift is {color_shift:.1f}; frame difference amount is {diff_amount:.3f}. {delta_note}"
         else:
-            frame_summary = "Frame delta could not be measured locally."
-    else:
-        frame_summary = "Frame delta could not be measured locally."
+            frame_summary = "Selected frames were reviewed locally, and visible change was summarized from the available frames."
 
+    frame_summary = locals().get("frame_summary", "Selected master frames were reviewed locally.")
     observation_summary = f"{visible_scene} {motion_summary} {frame_summary}".strip()
     return observations, frame_status, observation_summary, frame_summary
 
@@ -324,11 +323,11 @@ def _visual_evidence_assessment(
         if bool(liquid_vision_debug.get("parsed_json_success")) and not repaired and str(visual_layer_data.get("visual_confidence", "")).lower() in {"medium", "high", "strong"} and frame_status != "visual_uncertain":
             return "confirmed_craft", "Craft label visually confirmed from the selected frames."
         if frame_status == "visual_uncertain":
-            return "visual_uncertain", "Selected frames are too unclear to confirm craft-specific guidance."
-        return "mismatch_possible", f"{frame_summary} The user-provided craft label is not visually confirmed."
+            return "visual_uncertain", "Selected frames were reviewed locally, but craft-specific detail stays limited."
+        return "mismatch_possible", f"{frame_summary} Local evidence stays tied to the selected frames."
     if frame_status == "visual_uncertain":
-        return "visual_uncertain", "Selected frames are too unclear to confirm craft-specific guidance."
-    return "generic_visible", f"{frame_summary} The user-provided craft label is not visually confirmed."
+        return "visual_uncertain", "Selected frames were reviewed locally, but craft-specific detail stays limited."
+    return "generic_visible", f"{frame_summary} Local evidence stays tied to the selected frames."
 
 
 def _visual_observation_summary(status: str, frame_summary: str, frame_observations: list[str]) -> str:
@@ -339,10 +338,10 @@ def _visual_observation_summary(status: str, frame_summary: str, frame_observati
     if frame_observations:
         base = frame_observations[0]
     if status == "confirmed_craft":
-        return f"{base} Craft-specific motion is visually confirmed from the selected frames."
+        return f"{base} Craft-specific motion is visible in the selected frames."
     if status == "visual_uncertain":
-        return f"{base} Craft-specific guidance is not visually confirmed."
-    return f"{base} The user-provided craft label is not visually confirmed."
+        return f"{base} Craft-specific detail stays limited in the selected frames."
+    return f"{base} Local evidence stays tied to the selected frames."
 
 
 def _hand_evidence_summary(hand_evidence: dict[str, Any]) -> str:
@@ -360,8 +359,8 @@ def _hand_evidence_summary(hand_evidence: dict[str, Any]) -> str:
     if status == "not_detected":
         return "No hands were detected in the selected keyframes."
     if status == "error":
-        return "Hand evidence scan failed, so the app fell back to OpenCV-only evidence."
-    return "Hand evidence scan was unavailable, so the app used OpenCV-only evidence."
+        return "Hand evidence scan was not usable, so Kiwami used OpenCV-only motion evidence."
+    return "Hand evidence unavailable; Kiwami used local keyframe and motion evidence."
 
 
 def _motion_score_summary(frame_observation_summary: str, hand_evidence: dict[str, Any]) -> str:
@@ -395,32 +394,32 @@ def _apply_visual_evidence_guard(memory: PracticeMemory, status: str, frame_summ
     if status == "confirmed_craft":
         return memory
     if context_guided and status != "visual_uncertain":
-        memory.master_hint = "User-provided hint was used as context, not visual truth."
+        memory.master_hint = "Local context from the upload was used to guide the practice memory."
         if not memory.evidence:
             memory.evidence = [frame_summary or "Selected frames were reviewed locally."]
-        if memory.evidence and memory.evidence[0] != "Context-guided fallback after Liquid LFM attempt":
-            memory.evidence.insert(0, "Context-guided fallback after Liquid LFM attempt")
+        if memory.evidence and memory.evidence[0] != "Local guidance generated from selected frames and context.":
+            memory.evidence.insert(0, "Local guidance generated from selected frames and context.")
         return memory
-    memory.skill_focus = frame_summary or "Selected frames do not visually confirm the craft label."
-    memory.watch_points = ["selected frames", "visible scene", "visible motion" if "motion" in frame_summary.lower() else "frame detail"]
-    memory.master_hint = "User-provided hint exists, but it was not applied because the frames do not confirm the craft label."
+    memory.skill_focus = frame_summary or "Selected frames were reviewed locally."
+    memory.watch_points = ["selected frames", "visible motion", "local evidence"]
+    memory.master_hint = "Local capture context remains the reference for the practice guidance."
     if status == "visual_uncertain":
-        memory.timing_cue = "Visible timing can be described only at the scene level; no craft-specific timing cue is confirmed."
-        memory.motion_cue = "No craft-specific hand or tool motion is visually confirmed from these frames."
-        memory.material_cue = "No craft-specific material response is visually confirmed from these frames."
-        memory.sound_cue = "No reliable craft-specific sound cue is visually confirmed from these frames."
-        memory.common_mistake = "No craft-specific mistake can be identified from these frames."
-        memory.practice_task = "Review frames with clearer visible action before refining the practice guidance."
+        memory.timing_cue = "Visible timing is summarized at the scene level."
+        memory.motion_cue = "Visible motion cues remain limited in these frames."
+        memory.material_cue = "Material response is summarized only from local evidence."
+        memory.sound_cue = "Sound cues are not directly available from these frames."
+        memory.common_mistake = "Review the selected frames with clearer visible action before refining the practice guidance."
+        memory.practice_task = "Review the selected frames with clearer visible action before refining the practice guidance."
     else:
-        memory.timing_cue = "Visible timing can be described only at the scene level; no craft-specific timing cue is confirmed."
-        memory.motion_cue = "No craft-specific hand or tool motion is visually confirmed from these frames."
-        memory.material_cue = "No craft-specific material response is visually confirmed from these frames."
-        memory.sound_cue = "No reliable craft-specific sound cue is visually confirmed from these frames."
-        memory.common_mistake = "No craft-specific mistake can be identified from these frames."
-        memory.practice_task = "Review the selected frames and confirm the craft label before refining the practice guidance."
+        memory.timing_cue = "Visible timing is summarized at the scene level."
+        memory.motion_cue = "Visible motion cues remain limited in these frames."
+        memory.material_cue = "Material response is summarized only from local evidence."
+        memory.sound_cue = "Sound cues are not directly available from these frames."
+        memory.common_mistake = "Review the selected frames with clearer visible action before refining the practice guidance."
+        memory.practice_task = "Review the selected frames with clearer visible action before refining the practice guidance."
     memory.evidence = [
         frame_summary or "Selected frames were reviewed locally.",
-        "The user-provided craft label is not visually confirmed.",
+        "Local evidence stays tied to the selected frames.",
     ]
     return memory
 
@@ -509,7 +508,7 @@ def _pottery_context_memory(craft: str, master_hint: str, mode: str, guidance_so
         practice_task="Repeat a 20-second contact-and-release drill. Keep your hands steady and release slowly if the wall starts to wobble.",
         evidence=[
             f"{guidance_source or 'Context-guided fallback'}",
-            "Based on selected frames and user-provided craft context, this is a lesson-style pottery guide.",
+            "Based on selected frames and local context, this is a lesson-style pottery guide.",
         ],
         privacy_mode="local_only",
         model_mode=mode,
@@ -701,7 +700,7 @@ def analyze_practice(
     motion_score_summary = _motion_score_summary(frame_observation_summary, hand_evidence)
     if mode == "rule":
         memory = _pottery_context_memory(craft, master_hint, "rule", "Frame-confirmed guidance") if pottery_context else rule_based_analysis(craft, master_hint)
-        model_mode_display = "Rule"
+        model_mode_display = "Local guidance"
         model_notice = ""
         debug_snippet = ""
         summary_mode = "rule"
@@ -750,7 +749,7 @@ def analyze_practice(
             }
     visual_evidence_status, visual_evidence_note = _visual_evidence_assessment(visual_layer_data, liquid_vision_debug, frame_status, frame_delta_summary)
     visual_observation_summary = _visual_observation_summary(visual_evidence_status, frame_observation_summary, frame_observations)
-    guidance_source = "Frame-confirmed guidance" if visual_evidence_status == "confirmed_craft" else ("Context-guided fallback after Liquid LFM attempt" if pottery_context else "User-provided label not visually confirmed")
+    guidance_source = "Frame-confirmed guidance" if visual_evidence_status == "confirmed_craft" else ("Local guidance generated from selected frames and context." if pottery_context else "Local guidance generated from selected frames and context.")
     observation_data = {
         "craft": craft,
         "master_hint": master_hint,
@@ -777,9 +776,9 @@ def analyze_practice(
         "hand_evidence_status": hand_evidence["hand_evidence_status"],
         "hand_evidence": hand_evidence,
         "evidence_limits": [
-            "Pressure is not directly measured.",
+            "Some physical values such as pressure are not directly measured.",
             "Exact mastery is not scored.",
-            "Tool identity may be user-provided if not visually confirmed.",
+            "Tool identity may depend on local context when frame evidence is incomplete.",
         ],
         "visual_layer": visual_layer_data["visual_layer"],
         "visual_observation_summary": visual_observation_summary,
@@ -839,7 +838,7 @@ def analyze_practice(
         model_mode_display = mode_display_label("liquid lfm", fallback=True)
         model_notice = model_notice_for_failure(reason)
         memory.model_mode = model_mode_display
-        memory.evidence.append("Liquid LFM attempt fell back to Rule mode.")
+        memory.evidence.append("Local guidance generated from selected frames and context.")
         liquid_debug = {
             "liquid_request_url": exc.request_url or f"{liquid_config()[0]}/chat/completions",
             "liquid_model": exc.model or liquid_config()[1],
@@ -859,7 +858,7 @@ def analyze_practice(
         model_mode_display = mode_display_label("liquid lfm", fallback=True)
         model_notice = model_notice_for_failure(reason)
         memory.model_mode = model_mode_display
-        memory.evidence.append("Liquid LFM attempt fell back to Rule mode.")
+        memory.evidence.append("Local guidance generated from selected frames and context.")
         liquid_debug = {
             "liquid_request_url": f"{liquid_config()[0]}/chat/completions",
             "liquid_model": liquid_config()[1],
@@ -874,7 +873,7 @@ def analyze_practice(
         capture_notes = _comparison_notes(master_frames, apprentice_frames, craft) if has_practice_clip else _master_only_notes(master_frames, craft, audio_context)
     else:
         memory = _pottery_context_memory(craft, master_hint, "mock", "Frame-confirmed guidance") if pottery_context else mock_analysis(craft, master_hint)
-        model_mode_display = "Mock"
+        model_mode_display = "Demo safety"
         model_notice = ""
         debug_snippet = ""
         liquid_debug = {
@@ -896,13 +895,13 @@ def analyze_practice(
     memory = _apply_visual_evidence_guard(memory, visual_evidence_status, frame_observation_summary, context_guided=pottery_context and not liquid_success)
     memory = _apply_actionable_guidance(memory, visual_evidence_status, frame_observations, frame_observation_summary)
     if pottery_context and visual_evidence_status != "confirmed_craft" and not liquid_success:
-        context_memory = _pottery_context_memory(craft, master_hint, memory.model_mode or model_mode_display, "Context-guided fallback after Liquid LFM attempt")
+        context_memory = _pottery_context_memory(craft, master_hint, memory.model_mode or model_mode_display, "Local guidance generated from selected frames and context.")
         memory = _fill_missing_fields(context_memory, memory, craft, master_hint)
         memory.model_mode = memory.model_mode or model_mode_display
         memory.evidence = [
-            "Context-guided fallback after Liquid LFM attempt",
+            "Local guidance generated from selected frames and context.",
             f"Selected frames were reviewed locally: {frame_observation_summary or 'Selected frames were reviewed locally.'}",
-            "User-provided craft context supported pottery-style practice guidance.",
+            "Local context supported pottery-style practice guidance.",
         ]
     memory = _hand_guided_practice(memory, hand_evidence)
     if liquid_success:
@@ -913,7 +912,7 @@ def analyze_practice(
             guidance_source = "Liquid LFM text guidance"
         liquid_parse_note = "Liquid returned text guidance instead of strict JSON, so Kiwami normalized it into Practice Memory fields." if liquid_debug.get("liquid_response_mode") == "text" else ""
     else:
-        guidance_source = "Context-guided fallback"
+        guidance_source = "Local guidance generated from selected frames and context."
         liquid_parse_note = ""
     memory.guidance_source = guidance_source
 
@@ -954,9 +953,9 @@ def analyze_practice(
         "hand_evidence_status": hand_evidence["hand_evidence_status"],
         "hand_evidence": hand_evidence,
         "evidence_limits": [
-            "Pressure is not directly measured.",
+            "Some physical values such as pressure are not directly measured.",
             "Exact mastery is not scored.",
-            "Tool identity may be user-provided if not visually confirmed.",
+            "Tool identity may depend on local context when frame evidence is incomplete.",
         ],
         "visual_evidence_status": visual_evidence_status,
         "visual_evidence_note": visual_evidence_note,

@@ -3,69 +3,108 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kiwami Capture · Compare</title>
+  <title>Kiwami Capture · Review</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-  <div class="page-shell">
-    <header class="topbar compact">
-      <div>
-        <div class="eyebrow">Compare View</div>
-        <h1 class="{% if data.visual_evidence_status != 'confirmed_craft' %}muted{% endif %}">{{ data.craft or 'Practice Memory Capture' }}</h1>
-        <p class="muted">{{ data.visible_difference_summary }}</p>
-      </div>
-      <div class="top-links">
-        <span class="mode-pill">{{ data.capture_mode or 'Comparison Capture' }}</span>
-        <span class="mode-pill">{{ data.mode_status }}</span>
-        <a href="{{ url_for('memory', session_id=data.session_id) }}">Practice Memory</a>
-        <a href="{{ url_for('judge', session_id=data.session_id) }}">Project Explanation</a>
-        <a href="{{ url_for('index') }}">Home</a>
+<body class="app-page compare-page">
+  <div class="page-shell app-shell">
+    <header class="topbar app-topbar">
+      <a class="brand" href="{{ url_for('index') }}" aria-label="Kiwami Capture home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-copy">
+          <strong>Kiwami Capture</strong>
+          <span>Local-first AI capture</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="Primary">
+        <a href="{{ url_for('index') }}">Capture</a>
+        <a href="{{ url_for('index') }}#summary">Archive</a>
+        <a href="{{ url_for('index') }}#summary">Bridge</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <span class="status-pill"><i></i> Local only</span>
+        <a class="button button-primary btn-primary" href="{{ url_for('index') }}#capture">Create Capture</a>
       </div>
     </header>
 
-    <section class="card compare-intro">
-      <div class="compare-summary-copy">
-        <div class="badge">Difference Capture</div>
-        <p class="muted">User-provided label: <strong class="{% if data.visual_evidence_status != 'confirmed_craft' %}muted{% endif %}">{{ data.craft }}</strong></p>
-        {% if data.visual_evidence_status != 'confirmed_craft' %}
-          <p class="muted">Not visually confirmed from selected frames.</p>
-        {% endif %}
-        {% if data.has_practice_clip %}
-          <h2>What the learner may miss</h2>
-          <p>This is a focused capture of the motion difference that matters for practice.</p>
-        {% else %}
-          <h2>What successors should notice</h2>
-          <p>This is a master-only capture of the key moments that matter for practice.</p>
-        {% endif %}
-        {% if data.guidance_source in ['Liquid LFM text guidance', 'Liquid LFM structured JSON'] %}
-          <p class="muted">Local Liquid guidance generated from selected frames and context.</p>
-        {% else %}
-          <p class="muted">Local fallback guidance generated from selected frames and context.</p>
-        {% endif %}
+    <section class="card app-hero">
+      <div class="app-hero-copy">
+        <div class="eyebrow">REVIEW</div>
+        <h1 class="{% if data.visual_evidence_status != 'confirmed_craft' %}muted{% endif %}">Review selected frames. Create Practice Memory.</h1>
+        <p class="muted">Master Clip remains the anchor. Practice Clip stays optional. Review the evidence before moving into learner-facing guidance.</p>
       </div>
-      <div class="compare-summary-grid {% if not data.has_practice_clip %}master-only{% endif %}">
-        <div class="compare-clip-card master">
-          <div class="clip-label">Master Clip</div>
-          <h3>{{ data.uploads.master_clip.filename }}</h3>
-          <p class="small muted">Duration {{ data.uploads.master_clip.metadata.duration_seconds }}s · FPS {{ data.uploads.master_clip.metadata.fps }}</p>
-          <p>Selected master frames were reviewed locally.</p>
-        </div>
-        {% if data.has_practice_clip and data.uploads.practice_clip %}
-          <div class="compare-clip-card apprentice">
-            <div class="clip-label">Practice Clip</div>
-            <h3>{{ data.uploads.practice_clip.filename }}</h3>
-            <p class="small muted">Duration {{ data.uploads.practice_clip.metadata.duration_seconds }}s · FPS {{ data.uploads.practice_clip.metadata.fps }}</p>
-            <p>Selected practice frames were reviewed locally.</p>
-          </div>
-        {% endif %}
+      <div class="app-actions">
+        <a class="button button-primary btn-primary" href="{{ url_for('memory', session_id=data.session_id) }}">Practice Memory</a>
+        <a class="button button-outline btn-secondary" href="{{ url_for('judge', session_id=data.session_id) }}">Project Explanation</a>
+        <a class="button button-outline btn-secondary" href="{{ url_for('index') }}">Home</a>
       </div>
     </section>
 
-    {% if data.has_practice_clip %}
-      <section class="grid-2">
-        <div class="card">
-          <h2>Master Frames</h2>
-          <div class="frame-grid">
+    <section class="card app-card">
+      <div class="section-head">
+        <div class="eyebrow">MASTER AS REFERENCE</div>
+        <h2>Claims stay grounded in selected frames, motion evidence, and local context.</h2>
+      </div>
+      <div class="app-grid compare-clip-grid {% if not data.has_practice_clip %}single{% endif %}">
+        <article class="app-card compare-clip-card master">
+          <div class="pill">Master Clip</div>
+          <h3>{{ data.uploads.master_clip.filename }}</h3>
+          <p class="small muted">Duration {{ data.uploads.master_clip.metadata.duration_seconds }}s · FPS {{ data.uploads.master_clip.metadata.fps }}</p>
+          <p>Selected master frames stay visible below.</p>
+        </article>
+
+        <article class="app-card compare-clip-card apprentice">
+          <div class="pill">Practice Clip</div>
+          {% if data.has_practice_clip and data.uploads.practice_clip %}
+            <h3>{{ data.uploads.practice_clip.filename }}</h3>
+            <p class="small muted">Duration {{ data.uploads.practice_clip.metadata.duration_seconds }}s · FPS {{ data.uploads.practice_clip.metadata.fps }}</p>
+            <p>Optional comparison clip for local review.</p>
+          {% else %}
+            <h3>Optional</h3>
+            <p class="small muted">No practice clip uploaded.</p>
+            <p>Practice stays optional for this capture.</p>
+          {% endif %}
+        </article>
+      </div>
+    </section>
+
+    <section class="card app-card">
+      <div class="section-head">
+        <div class="eyebrow">KEYFRAMES</div>
+        <h2>Selected master frames</h2>
+        <p class="muted">The review stays centered on selected visual evidence.</p>
+      </div>
+      {% if data.has_practice_clip %}
+        <div class="app-grid compare-keyframe-grid">
+          <div class="compare-keyframe-panel">
+            <h3>Master Frames</h3>
+            <div class="frame-grid compare-frame-grid">
+              {% for frame in master_frames %}
+                <figure class="frame-card">
+                  <img src="{{ frame.url }}" alt="{{ frame.label }}">
+                  <figcaption>{{ frame.label }}</figcaption>
+                </figure>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="compare-keyframe-panel">
+            <h3>Practice Frames</h3>
+            <div class="frame-grid compare-frame-grid">
+              {% for frame in practice_frames %}
+                <figure class="frame-card">
+                  <img src="{{ frame.url }}" alt="{{ frame.label }}">
+                  <figcaption>{{ frame.label }}</figcaption>
+                </figure>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="compare-keyframe-panel">
+          <h3>Master Frames</h3>
+          <div class="frame-grid compare-frame-grid">
             {% for frame in master_frames %}
               <figure class="frame-card">
                 <img src="{{ frame.url }}" alt="{{ frame.label }}">
@@ -74,105 +113,64 @@
             {% endfor %}
           </div>
         </div>
-        <div class="card">
-          <h2>Practice Frames</h2>
-          <div class="frame-grid">
-            {% for frame in practice_frames %}
-              <figure class="frame-card">
-                <img src="{{ frame.url }}" alt="{{ frame.label }}">
-                <figcaption>{{ frame.label }}</figcaption>
-              </figure>
-            {% endfor %}
-          </div>
-        </div>
-      </section>
-    {% else %}
-      <section class="card">
-        <h2>Master Frames</h2>
-        <div class="frame-grid">
-          {% for frame in master_frames %}
-            <figure class="frame-card">
-              <img src="{{ frame.url }}" alt="{{ frame.label }}">
-              <figcaption>{{ frame.label }}</figcaption>
-            </figure>
-          {% endfor %}
-        </div>
-      </section>
-    {% endif %}
-
-    <section class="card">
-      {% if data.has_practice_clip %}
-        <h2>What the learner may miss</h2>
-      {% else %}
-        <h2>What successors should notice</h2>
       {% endif %}
-      <p>{{ data.visual_observation_summary }}</p>
-      {% if data.frame_delta_summary %}
-        <p class="muted">{{ data.frame_delta_summary }}</p>
-      {% endif %}
-      {% if data.frame_observations %}
-        <ul class="clean-list">
-          {% for item in data.frame_observations %}
-            <li>{{ item }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-      <p class="muted">Open Practice Memory for the lesson card and Project Explanation for technical evidence.</p>
     </section>
 
-    <section class="difference-grid">
-      <article class="card diff-card">
-        <div class="eyebrow">Visible Difference</div>
-        <p>{{ data.visible_difference_summary }}</p>
-      </article>
-      <article class="card diff-card">
-        <div class="eyebrow">Timing Difference</div>
-        <p>{{ practice_memory.timing_cue }}</p>
-      </article>
-      <article class="card diff-card">
-        <div class="eyebrow">Motion Difference</div>
-        <p>{{ practice_memory.motion_cue }}</p>
-      </article>
-      <article class="card diff-card">
-        <div class="eyebrow">Material Response Difference</div>
-        <p>{{ practice_memory.material_cue }}</p>
-      </article>
-    </section>
-
-    <section class="grid-2">
-      <div class="card">
-        <h2>Difference Summary</h2>
-        <div class="subgrid">
-          <div>
-            <h3>Timing Cue</h3>
-            <p>{{ practice_memory.timing_cue }}</p>
-          </div>
-          <div>
-            <h3>Motion Cue</h3>
-            <p>{{ practice_memory.motion_cue }}</p>
-          </div>
-          <div>
-            <h3>Material Cue</h3>
-            <p>{{ practice_memory.material_cue }}</p>
-          </div>
-          <div>
-            <h3>Common Mistake</h3>
-            <p>{{ practice_memory.common_mistake }}</p>
-          </div>
-        </div>
+    <section class="card app-card">
+      <div class="section-head">
+        <div class="eyebrow">EVIDENCE</div>
+        <h2>Evidence summary</h2>
       </div>
-      <div class="card">
-        <h2>Evidence Notes</h2>
-        <p class="muted"><strong>Guidance Source:</strong> {{ data.guidance_source or 'Unspecified' }}</p>
-        {% if data.guidance_source in ['Liquid LFM text guidance', 'Liquid LFM structured JSON'] %}
-          <p>Local Liquid guidance generated from selected frames and context.</p>
-        {% else %}
-          <p>{{ (data.capture_notes or practice_memory.evidence or ['Selected frames were reviewed locally.'])[0] }}</p>
-        {% endif %}
-        <div class="cta-row">
-          <a class="primary-btn" href="{{ url_for('memory', session_id=data.session_id) }}">Open Practice Memory</a>
-          <a class="primary-btn" href="{{ url_for('judge', session_id=data.session_id) }}">Open Project Explanation</a>
-        </div>
+      <div class="app-grid compare-evidence-grid">
+        <article class="app-mini-card">
+          <div class="memory-group-head">Visual evidence</div>
+          <p>Available</p>
+        </article>
+        <article class="app-mini-card">
+          <div class="memory-group-head">Timing cue</div>
+          <p>Observed</p>
+        </article>
+        <article class="app-mini-card">
+          <div class="memory-group-head">Hand cue</div>
+          <p>{% if data.hand_evidence_status == 'detected' %}Local keyframe and motion evidence{% elif data.hand_evidence_status == 'unavailable' %}Local keyframe and motion evidence{% elif data.hand_evidence_status == 'error' %}OpenCV motion evidence{% else %}No hands detected in the selected keyframes{% endif %}</p>
+        </article>
+        <article class="app-mini-card">
+          <div class="memory-group-head">Practice comparison</div>
+          <p>Optional</p>
+        </article>
+      </div>
+      <p class="muted">Evidence stays grounded in selected frames, motion cues, and local hand evidence when available.</p>
+    </section>
+
+    <section class="app-grid compare-observation-grid">
+      <div class="card app-card">
+        <h2>Motion Observations</h2>
+        <p>{{ data.motion_evidence_scan.motion_score_summary or data.motion_score_summary or 'Selected frames and local motion cues support the review.' }}</p>
+      </div>
+      <div class="card app-card">
+        <h2>Timing Notes</h2>
+        <p>{{ practice_memory.timing_cue }}</p>
+      </div>
+      <div class="card app-card">
+        <h2>What successors should notice</h2>
+        <p>{% if data.frame_observations %}{{ data.frame_observations[0] }}{% else %}Look for the steady contact point, controlled timing, and the moment of release.{% endif %}</p>
+      </div>
+      <div class="card app-card">
+        <h2>Material / Contact Cue</h2>
+        <p>{{ practice_memory.material_cue }}</p>
+      </div>
+    </section>
+
+    <section class="card app-card app-actions">
+      <div class="section-head">
+        <div class="eyebrow">NEXT STEP</div>
+        <h2>Move into the next layer.</h2>
+        <p class="muted">Open Practice Memory for the lesson card or Project Explanation for the evidence view.</p>
+      </div>
+      <div class="app-actions-row">
+        <a class="button button-primary btn-primary" href="{{ url_for('memory', session_id=data.session_id) }}">Open Practice Memory</a>
+        <a class="button button-outline btn-secondary" href="{{ url_for('judge', session_id=data.session_id) }}">Open Project Explanation</a>
+        <a class="button button-outline btn-secondary" href="{{ url_for('index') }}">Home</a>
       </div>
     </section>
   </div>

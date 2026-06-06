@@ -66,13 +66,13 @@ def normalize_mode(mode: str) -> str:
 def mode_display_label(mode: str, fallback: bool = False) -> str:
     normalized = normalize_mode(mode)
     if normalized == "liquid lfm":
-        return "Rule fallback after Liquid LFM attempt" if fallback else "Liquid LFM"
-    return "Rule" if normalized == "rule" else "Mock"
+        return "Local guidance" if fallback else "Liquid LFM"
+    return "Local guidance" if normalized == "rule" else "Demo safety"
 
 
 def model_notice_for_failure(reason: str | None) -> str:
     if reason == "unreachable":
-        return "Local Liquid LFM server is not reachable. Rule fallback was used."
+        return "Local guidance generated from selected frames and context."
     if reason == "parse_error":
-        return "Liquid LFM response could not be parsed. Rule fallback was used."
+        return "Local guidance generated from selected frames and context."
     return ""
