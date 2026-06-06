@@ -37,10 +37,10 @@
           <h2>What successors should notice</h2>
           <p>This is a master-only capture of the key moments that matter for practice.</p>
         {% endif %}
-        {% if data.model_notice %}
-          <p class="muted">{{ data.model_notice }}</p>
+        {% if data.guidance_source in ['Liquid LFM text guidance', 'Liquid LFM structured JSON'] %}
+          <p class="muted">Local Liquid guidance generated from selected frames and context.</p>
         {% else %}
-          <p class="muted">Current mode: {{ data.mode_status }}. The wording stays aligned to the selected mock, rule, or Liquid LFM path.</p>
+          <p class="muted">Local fallback guidance generated from selected frames and context.</p>
         {% endif %}
       </div>
       <div class="compare-summary-grid {% if not data.has_practice_clip %}master-only{% endif %}">
@@ -164,7 +164,11 @@
       <div class="card">
         <h2>Evidence Notes</h2>
         <p class="muted"><strong>Guidance Source:</strong> {{ data.guidance_source or 'Unspecified' }}</p>
-        <p>{{ (data.capture_notes or practice_memory.evidence or ['Selected frames were reviewed locally.'])[0] }}</p>
+        {% if data.guidance_source in ['Liquid LFM text guidance', 'Liquid LFM structured JSON'] %}
+          <p>Local Liquid guidance generated from selected frames and context.</p>
+        {% else %}
+          <p>{{ (data.capture_notes or practice_memory.evidence or ['Selected frames were reviewed locally.'])[0] }}</p>
+        {% endif %}
         <div class="cta-row">
           <a class="primary-btn" href="{{ url_for('memory', session_id=data.session_id) }}">Open Practice Memory</a>
           <a class="primary-btn" href="{{ url_for('judge', session_id=data.session_id) }}">Open Project Explanation</a>

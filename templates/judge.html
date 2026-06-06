@@ -48,7 +48,9 @@
       <p>Model Mode: <strong>{{ data.mode_status }}</strong></p>
       <p>Visual Layer: <strong>{{ data.visual_layer or 'Local Keyframes' }}</strong></p>
       <p class="muted">{{ data.visual_observation_summary }}</p>
-      {% if data.model_notice %}
+      {% if data.liquid_parse_note %}
+        <p class="muted">{{ data.liquid_parse_note }}</p>
+      {% elif data.model_notice %}
         <p class="muted">{{ data.model_notice }}</p>
       {% endif %}
     </section>

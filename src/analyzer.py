@@ -613,6 +613,24 @@ def _difference_summary(memory: PracticeMemory, mode: str, visual_status: str, f
     return memory.skill_focus
 
 
+def _guidance_source_from_memory(memory: PracticeMemory, liquid_debug: dict[str, Any], visual_status: str, pottery_context: bool) -> str:
+    if visual_status == "confirmed_craft":
+        if str(memory.guidance_source).strip() == "Liquid LFM text guidance":
+            return "Liquid LFM text guidance"
+        if str(memory.guidance_source).strip() == "Liquid LFM structured JSON":
+            return "Liquid LFM structured JSON"
+        return "Frame-confirmed guidance"
+    if str(memory.guidance_source).strip() == "Liquid LFM text guidance":
+        return "Liquid LFM text guidance"
+    if str(memory.guidance_source).strip() == "Liquid LFM structured JSON":
+        return "Liquid LFM structured JSON"
+    if pottery_context:
+        return "Context-guided fallback"
+    if not liquid_debug.get("liquid_http_status"):
+        return "Context-guided fallback"
+    return "Local Liquid guidance"
+
+
 def _fill_missing_fields(memory: PracticeMemory, base_memory: PracticeMemory, craft: str, master_hint: str) -> PracticeMemory:
     memory.craft = memory.craft or craft
     memory.skill_focus = memory.skill_focus or base_memory.skill_focus
@@ -810,6 +828,10 @@ def analyze_practice(
         model_notice = ""
         debug_snippet = liquid_debug.get("liquid_raw_snippet", "")[:1000]
         summary_mode = "liquid lfm"
+        if liquid_debug.get("parsed_json_success"):
+            memory.guidance_source = "Liquid LFM structured JSON"
+        else:
+            memory.guidance_source = "Liquid LFM text guidance"
         capture_notes = _comparison_notes(master_frames, apprentice_frames, craft) if has_practice_clip else _master_only_notes(master_frames, craft, audio_context)
     except LiquidResponseError as exc:
         reason = "unreachable" if not liquid_server_reachable(liquid_config()[0]) else "parse_error"
@@ -822,9 +844,11 @@ def analyze_practice(
             "liquid_request_url": exc.request_url or f"{liquid_config()[0]}/chat/completions",
             "liquid_model": exc.model or liquid_config()[1],
             "liquid_http_status": exc.http_status,
+            "liquid_raw_response": exc.raw_response or exc.raw_snippet or "",
             "liquid_raw_snippet": (exc.raw_snippet or exc.snippet or "")[:1000],
             "liquid_error": str(exc),
             "parsed_json_success": bool(exc.parsed_json_success),
+            "liquid_response_mode": "fallback",
         }
         debug_snippet = liquid_debug["liquid_raw_snippet"][:1000]
         summary_mode = "rule"
@@ -840,6 +864,7 @@ def analyze_practice(
             "liquid_request_url": f"{liquid_config()[0]}/chat/completions",
             "liquid_model": liquid_config()[1],
             "liquid_http_status": None,
+            "liquid_raw_response": "",
             "liquid_raw_snippet": "",
             "liquid_error": "unexpected Liquid LFM exception",
             "parsed_json_success": False,
@@ -856,18 +881,21 @@ def analyze_practice(
             "liquid_request_url": "",
             "liquid_model": "",
             "liquid_http_status": None,
+            "liquid_raw_response": "",
             "liquid_raw_snippet": "",
             "liquid_error": "",
             "parsed_json_success": False,
+            "liquid_response_mode": "mock",
         }
         summary_mode = "mock"
         capture_notes = _comparison_notes(master_frames, apprentice_frames, craft) if has_practice_clip else _master_only_notes(master_frames, craft, audio_context)
         visual_layer_data = base_visual_layer
 
+    liquid_success = liquid_debug.get("liquid_response_mode") in {"json", "text"}
     visual_evidence_status, visual_evidence_note = _visual_evidence_assessment(visual_layer_data, liquid_vision_debug, frame_status, frame_delta_summary)
-    memory = _apply_visual_evidence_guard(memory, visual_evidence_status, frame_observation_summary, context_guided=pottery_context)
+    memory = _apply_visual_evidence_guard(memory, visual_evidence_status, frame_observation_summary, context_guided=pottery_context and not liquid_success)
     memory = _apply_actionable_guidance(memory, visual_evidence_status, frame_observations, frame_observation_summary)
-    if pottery_context and visual_evidence_status != "confirmed_craft":
+    if pottery_context and visual_evidence_status != "confirmed_craft" and not liquid_success:
         context_memory = _pottery_context_memory(craft, master_hint, memory.model_mode or model_mode_display, "Context-guided fallback after Liquid LFM attempt")
         memory = _fill_missing_fields(context_memory, memory, craft, master_hint)
         memory.model_mode = memory.model_mode or model_mode_display
@@ -877,6 +905,16 @@ def analyze_practice(
             "User-provided craft context supported pottery-style practice guidance.",
         ]
     memory = _hand_guided_practice(memory, hand_evidence)
+    if liquid_success:
+        guidance_source = str(memory.guidance_source or "Liquid LFM text guidance").strip()
+        if liquid_debug.get("parsed_json_success"):
+            guidance_source = "Liquid LFM structured JSON"
+        elif guidance_source != "Liquid LFM structured JSON":
+            guidance_source = "Liquid LFM text guidance"
+        liquid_parse_note = "Liquid returned text guidance instead of strict JSON, so Kiwami normalized it into Practice Memory fields." if liquid_debug.get("liquid_response_mode") == "text" else ""
+    else:
+        guidance_source = "Context-guided fallback"
+        liquid_parse_note = ""
     memory.guidance_source = guidance_source
 
     summary = _difference_summary(memory, summary_mode, visual_evidence_status, frame_observation_summary)
@@ -893,6 +931,7 @@ def analyze_practice(
         "model_notice": model_notice,
         "liquid_debug_snippet": debug_snippet,
         "liquid_debug": liquid_debug,
+        "liquid_raw_response": liquid_debug.get("liquid_raw_response", ""),
         "liquid_vision_debug": liquid_vision_debug,
         "visual_layer": visual_layer_data["visual_layer"],
         "suggested_craft_name": visual_layer_data["suggested_craft_name"],
@@ -923,6 +962,7 @@ def analyze_practice(
         "visual_evidence_note": visual_evidence_note,
         "visual_observation_summary": visual_observation_summary,
         "guidance_source": guidance_source,
+        "liquid_parse_note": liquid_parse_note,
         "capture_mode_display": capture_mode_display,
         "capture_notes": capture_notes,
     }

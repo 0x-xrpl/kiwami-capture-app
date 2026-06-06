@@ -36,12 +36,12 @@
         <div class="badge">Local-first capture</div>
         <h2>Practice Memory</h2>
         <p class="muted">This is not a video summary. This captures what successors should notice and practice.</p>
-        {% if data.guidance_source == 'Context-guided fallback after Liquid LFM attempt' %}
-          <p class="muted">Practice guidance generated from selected frames and user-provided craft context.</p>
-        {% elif data.guidance_source == 'Frame-confirmed guidance' %}
-          <p class="muted">Practice guidance generated from the selected frames.</p>
+        {% if data.guidance_source == 'Liquid LFM text guidance' %}
+          <p class="muted">Practice guidance generated with local Liquid LFM and selected frame context.</p>
+        {% elif data.guidance_source == 'Liquid LFM structured JSON' %}
+          <p class="muted">Practice guidance generated with local Liquid LFM and selected frame context.</p>
         {% else %}
-          <p class="muted">Practice guidance generated from the selected frames and the craft context provided by the user.</p>
+          <p class="muted">Local fallback guidance generated from selected frames and context.</p>
         {% endif %}
         {% if data.hand_evidence_status == 'detected' %}
           <p class="muted">Hand contact was visible in the selected frames, so the cues lean on steady contact and slow release.</p>
@@ -59,9 +59,15 @@
       </div>
     </section>
 
-    {% if data.model_notice %}
+    {% if data.guidance_source in ['Liquid LFM text guidance', 'Liquid LFM structured JSON'] or data.guidance_source == 'Context-guided fallback' %}
       <section class="card flash">
-        <p>{{ data.model_notice }}</p>
+        <p>
+          {% if data.guidance_source == 'Liquid LFM text guidance' or data.guidance_source == 'Liquid LFM structured JSON' %}
+            Practice guidance generated with local Liquid LFM and selected frame context.
+          {% else %}
+            Local fallback guidance generated from selected frames and context.
+          {% endif %}
+        </p>
       </section>
     {% endif %}
 

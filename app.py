@@ -51,6 +51,31 @@ def _relative_frame_url(session_id: str, kind: str, filename: str) -> str:
     return url_for("session_asset", session_id=session_id, kind=kind, filename=filename)
 
 
+def _safe_guidance_notice(data: dict[str, object]) -> str:
+    return "Local guidance generated from selected frames and context." if data.get("model_notice") else ""
+
+
+def _safe_practice_notice(data: dict[str, object]) -> str:
+    return "Practice guidance generated from selected frames and local context." if data.get("model_notice") else ""
+
+
+def _compact_parse_note(data: dict[str, object]) -> str:
+    stored_note = str(data.get("liquid_parse_note") or "").strip()
+    if stored_note:
+        return stored_note
+    liquid_debug = data.get("liquid_debug") or {}
+    if not isinstance(liquid_debug, dict):
+        return ""
+    error = str(liquid_debug.get("liquid_error") or "").strip()
+    raw_response = str(liquid_debug.get("liquid_raw_response") or "").strip()
+    if not error:
+        return ""
+    note = f"Liquid parse note: {error}"
+    if raw_response:
+        note += f" Raw response preserved locally ({len(raw_response)} chars)."
+    return note
+
+
 @app.route("/")
 def index():
     return render_template(
@@ -134,6 +159,8 @@ def process():
         "model_notice": analysis["model_notice"],
         "liquid_debug_snippet": analysis["liquid_debug_snippet"],
         "liquid_debug": analysis.get("liquid_debug", {}),
+        "liquid_raw_response": analysis.get("liquid_raw_response", ""),
+        "liquid_parse_note": analysis.get("liquid_parse_note", ""),
         "liquid_vision_debug": analysis.get("liquid_vision_debug", {}),
         "has_practice_clip": bool(practice_path),
         "capture_notes": analysis["capture_notes"],
@@ -256,6 +283,7 @@ def compare(session_id: str):
             ],
         },
     )
+    data["model_notice"] = _safe_guidance_notice(data)
     data.setdefault("visual_evidence_status", "weak")
     data.setdefault("visual_evidence_note", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
     data.setdefault("visual_observation_summary", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
@@ -319,6 +347,7 @@ def memory(session_id: str):
             ],
         },
     )
+    data["model_notice"] = _safe_practice_notice(data)
     data.setdefault("visual_evidence_status", "weak")
     data.setdefault("visual_evidence_note", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
     data.setdefault("visual_observation_summary", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
@@ -420,6 +449,7 @@ def judge(session_id: str):
             ],
         },
     )
+    data["liquid_parse_note"] = _compact_parse_note(data)
     data.setdefault("visual_evidence_status", "weak")
     data.setdefault("visual_evidence_note", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
     data.setdefault("visual_observation_summary", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
