@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiwami Capture · Judge Mode</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar compact">
+      <div>
+        <div class="eyebrow">Project Explanation / Judge Mode</div>
+        <h1 class="{% if data.visual_evidence_status != 'confirmed_craft' %}muted{% endif %}">{{ data.craft or 'Kiwami Capture' }}</h1>
+        <p class="muted">{{ data.visible_difference_summary }}</p>
+      </div>
+      <div class="top-links">
+        <a href="{{ url_for('compare', session_id=data.session_id) }}">Compare</a>
+        <a href="{{ url_for('memory', session_id=data.session_id) }}">Practice Memory</a>
+        <a href="{{ url_for('index') }}">Home</a>
+      </div>
+    </header>
+
+    <section class="card judge-intro">
+      <div class="badge">Local-first Skill Capture</div>
+      <p class="lead">Kiwami Capture is a local-first skill capture product built for private workplace and craft clips where the raw motion should stay local, but the learning essence should become reusable.</p>
+      <p class="muted">YouTube shows the demonstration. Kiwami Capture preserves what successors should notice and practice.</p>
+      <p class="muted">The product is not trying to be a full video manual tool or a general SOP engine. It focuses on master-only capture or optional comparison capture, then turns the result into Practice Memory.</p>
+    </section>
+
+    <section class="card">
+      <h2>What was captured</h2>
+      <p>User-provided label: <strong class="{% if data.visual_evidence_status != 'confirmed_craft' %}muted{% endif %}">{{ data.craft }}</strong></p>
+      {% if data.visual_evidence_status != 'confirmed_craft' %}
+        <p class="muted">Not visually confirmed from selected frames.</p>
+      {% endif %}
+      <p>Master Clip: <strong>{{ data.uploads.master_clip.filename }}</strong></p>
+      <p>Practice Clip: <strong>{{ data.uploads.practice_clip.filename if data.uploads.practice_clip else 'Not uploaded' }}</strong></p>
+      <p>Audio Clip: <strong>{{ data.uploads.audio_clip.filename if data.uploads.audio_clip else 'Not uploaded' }}</strong></p>
+      <p>Craft: <strong class="{% if data.visual_evidence_status != 'confirmed_craft' %}muted{% endif %}">{{ data.craft }}</strong></p>
+      <p>Context Note / Master Hint: <strong>{% if data.visual_evidence_status == 'confirmed_craft' %}{{ data.master_hint or 'Not provided' }}{% else %}User-provided hint exists, but it was not applied because the frames do not confirm the craft label.{% endif %}</strong></p>
+      <p>Tool Name: <strong>{{ data.tool_name or 'User-provided / not visually confirmed' }}</strong></p>
+      <p>Tool Type: <strong>{{ data.tool_type or 'User-provided / not visually confirmed' }}</strong></p>
+      <p>Material: <strong>{{ data.material or 'User-provided / not visually confirmed' }}</strong></p>
+      <p>Process Step: <strong>{{ data.process_step or 'User-provided / not visually confirmed' }}</strong></p>
+      <p>Audio / Spoken Hint: <strong>{{ data.audio_context or 'Not provided' }}</strong></p>
+      <p>Capture Mode: <strong>{{ data.capture_mode or 'Comparison Capture' }}</strong></p>
+      <p>Model Mode: <strong>{{ data.mode_status }}</strong></p>
+      <p>Visual Layer: <strong>{{ data.visual_layer or 'Local Keyframes' }}</strong></p>
+      <p class="muted">{{ data.visual_observation_summary }}</p>
+      {% if data.model_notice %}
+        <p class="muted">{{ data.model_notice }}</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Visual Evidence Check</h2>
+      <dl class="info-list">
+        <div><dt>Craft label</dt><dd>User-provided</dd></div>
+        <div><dt>Tool context</dt><dd>User-provided / not visually confirmed</dd></div>
+        <div><dt>Visual layer</dt><dd>{{ data.visual_layer or 'Local Keyframes' }}</dd></div>
+        <div><dt>Evidence status</dt><dd>{{ data.visual_evidence_status or 'generic_visible' }}</dd></div>
+        <div><dt>Guidance source</dt><dd>{{ data.guidance_source or 'Unspecified' }}</dd></div>
+      </dl>
+      <p class="muted">Kiwami Capture avoids making craft-specific claims when selected frames do not support them.</p>
+      {% if data.frame_observations %}
+        <ul class="clean-list">
+          {% for item in data.frame_observations %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
+        <h2>What was extracted</h2>
+        {% if data.has_practice_clip %}
+          <p>Local key frame extraction produced {{ data.frames.master|length }} master frames and {{ data.frames.practice|length }} practice frames.</p>
+        {% else %}
+          <p>Local key frame extraction produced {{ data.frames.master|length }} master frames for master-only capture.</p>
+        {% endif %}
+        <p>Metadata is stored locally in the session archive. If extraction fails, the app generates fallback frames so the flow does not break.</p>
+      </div>
+      <div class="card">
+        <h2>What was compared</h2>
+        {% if data.visual_layer == 'Liquid Vision' %}
+          <p>Visual Layer: Liquid Vision selected keyframe analysis reviewed 1-2 master keyframes and turned the structured observations into Practice Memory inputs.</p>
+        {% elif data.has_practice_clip %}
+          <p>Visual comparison currently uses local keyframe extraction and structured observation fields across master and practice clips.</p>
+        {% else %}
+          <p>Visual comparison currently uses local keyframe extraction and structured observation fields from the master demonstration.</p>
+        {% endif %}
+        <p>Optional Context Note and Audio / Spoken Hint can help the text layer stay close to the expert's explanation.</p>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
+        {% if data.has_practice_clip %}
+          <h2>What the learner may miss</h2>
+        {% else %}
+          <h2>What successors should notice</h2>
+        {% endif %}
+        <p>{{ data.visible_difference_summary }}</p>
+        {% if data.frame_delta_summary %}
+          <p class="muted">{{ data.frame_delta_summary }}</p>
+        {% endif %}
+        <p>The emphasis is on the hidden motion difference, not on a generic video summary.</p>
+      </div>
+      <div class="card">
+        <h2>What Practice Memory was generated</h2>
+        <ul class="clean-list">
+          <li><strong>Skill Focus:</strong> {{ data.practice_memory.skill_focus }}</li>
+          <li><strong>Step-by-Step Motion:</strong> {{ data.practice_memory.step_by_step_motion }}</li>
+          <li><strong>What to Copy:</strong> {{ data.practice_memory.what_to_copy }}</li>
+          <li><strong>What to Avoid:</strong> {{ data.practice_memory.what_to_avoid }}</li>
+          <li><strong>Success Sign:</strong> {{ data.practice_memory.success_sign }}</li>
+          <li><strong>Next Practice Drill:</strong> {{ data.practice_memory.next_practice_drill }}</li>
+          <li><strong>Timing Cue:</strong> {{ data.practice_memory.timing_cue }}</li>
+          <li><strong>Motion Cue:</strong> {{ data.practice_memory.motion_cue }}</li>
+          <li><strong>Material Cue:</strong> {{ data.practice_memory.material_cue }}</li>
+          <li><strong>Common Mistake:</strong> {{ data.practice_memory.common_mistake }}</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Why local / edge AI matters</h2>
+      <p>Workplace clips may contain private techniques, safety-sensitive operations, tools, faces, or customer/site details. Kiwami Capture keeps raw clips local and shares only the distilled learning card.</p>
+      <p class="muted">This matches the product goal: capture what successors fail to see without turning raw internal video into a public artifact.</p>
+    </section>
+
+    <section class="card">
+      <h2>Optimization Loop</h2>
+      <p>Kiwami Capture uses Liquid LFM in the text Practice Memory generation layer. Raw videos stay local, Practice Memory stays editable, and approved expert-reviewed sessions can become training JSONL records for skill-specific Liquid model optimization.</p>
+      <p class="muted">Current runtime uses llama.cpp / GGUF. The architecture is designed for mobile / edge deployment paths such as LEAP, and the AMD / ROCm path can accelerate local inference where available.</p>
+      <p class="muted">Visual Layer: Liquid Vision selected keyframe analysis uses 1-2 master keyframes when the local vision server is available. Audio / Spoken Hint is an optional context layer for short tool explanations, spoken hints, work sounds, or rhythm cues.</p>
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
+        <h2>Liquid LFM text layer</h2>
+        <p>Liquid LFM is used in the text Practice Memory generation layer. It generates Practice Memory from structured observations and the master hint through a local model server.</p>
+        <p class="muted">Visual Layer: {{ data.visual_layer or 'Local Keyframes' }}. When Liquid Vision is available, the app uses selected master keyframes and passes the visual observations into the text layer.</p>
+      </div>
+      <div class="card">
+        <h2>Why this is different</h2>
+        <p>Kiwami Capture is not a video manual editor. It is not a general video summarizer. It is not only a SOP generator.</p>
+        <p>Tebiki creates video manuals. Video-to-SOP tools create procedures. Kiwami Capture captures what successors fail to see.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      {% if data.visual_evidence_status == 'confirmed_craft' %}
+        <div class="section-head">
+          <div class="eyebrow">Motion Reference Image</div>
+          <p class="muted">Generated from selected master frames. This is a visual reference, not pose tracking.</p>
+        </div>
+        {% if data.ghost_motion_overlay_url %}
+          <figure class="frame-card">
+            <img src="{{ data.ghost_motion_overlay_url }}" alt="Motion Reference Image">
+            <figcaption>Motion Reference Image</figcaption>
+          </figure>
+        {% endif %}
+        <div class="ghost-grid">
+          <div class="ghost-step">
+            <span>Start</span>
+            <p>{{ data.master_motion_template.start or 'Set up the motion with light, controlled contact.' }}</p>
+          </div>
+          <div class="ghost-step">
+            <span>Stabilize</span>
+            <p>{{ data.master_motion_template.stabilize or 'Hold the motion steady until the material or tool settles.' }}</p>
+          </div>
+          <div class="ghost-step">
+            <span>Pause</span>
+            <p>{{ data.master_motion_template.pause or 'Pause only long enough for the motion to settle.' }}</p>
+          </div>
+          <div class="ghost-step">
+            <span>Release</span>
+            <p>{{ data.master_motion_template.release or 'Release without adding extra force.' }}</p>
+          </div>
+        </div>
+      {% else %}
+        <div class="section-head">
+          <div class="eyebrow">Motion Reference Image</div>
+          <p class="muted">Generated from selected master frames. This is a visual reference, not pose tracking.</p>
+        </div>
+        {% if data.ghost_motion_overlay_url %}
+          <figure class="frame-card">
+            <img src="{{ data.ghost_motion_overlay_url }}" alt="Motion Reference Image">
+            <figcaption>Motion Reference Image</figcaption>
+          </figure>
+        {% endif %}
+        <p class="muted">Craft-specific hand/tool motion is not visually confirmed from these frames.</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Model Status</h2>
+      <div class="status-block">
+        <p><strong>Current MVP:</strong></p>
+        <ul class="clean-list">
+          <li>Master Clip upload</li>
+          <li>Optional Practice Clip</li>
+          <li>Optional Audio / Spoken Hint</li>
+          <li>Optional Context Note</li>
+          <li>Mock, Rule, and Liquid LFM modes</li>
+          <li>Local upload flow</li>
+          <li>Local frame extraction</li>
+          <li>Editable Practice Memory</li>
+          <li>Markdown / JSON export</li>
+        </ul>
+        <p><strong>Liquid LFM:</strong></p>
+        <ul class="clean-list">
+          <li>Text adapter: generates Practice Memory locally through the model server</li>
+          <li>Visual Layer: Liquid Vision selected keyframe analysis can contribute structured visual observations</li>
+          <li>Mock and Rule modes remain available as offline fallbacks</li>
+        </ul>
+        <p><strong>Honest status:</strong> Raw clips stay local. The Liquid LFM call runs against the local model server.</p>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
+        <h2>Current implementation status</h2>
+        <p>What works now: local upload, key frame extraction, Mock, Rule, and Liquid LFM Practice Memory generation, master-only or comparison capture, editable memory card, exports, and a local archive.</p>
+      </div>
+      <div class="card">
+        <h2>Future model adapter plan</h2>
+        <p>Next steps are tighter prompt control and more reliable local server handling while keeping the current workflow simple.</p>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

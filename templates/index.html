@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiwami Capture</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="page-shell home-shell">
+    <header class="topbar home-topbar">
+      <div class="brand-block">
+        <div class="eyebrow">Private Edge AI for Capturing Expert Skill</div>
+        <h1>Kiwami Capture</h1>
+        <p class="tagline">熟練者の動きに宿る知を、次の世代のPractice Memoryへ。</p>
+        <p class="jpn hero-jpn">Kiwami Captureは、熟練者の実演から、後継者や反復練習者が見逃しやすい動き・タイミング・力加減・判断の勘所を抽出し、次の稽古に活かせるPractice Memoryへ変換します。</p>
+      </div>
+      <div class="privacy-badge home-privacy">
+        <span>Local-first capture</span>
+        <p>Raw clips stay local. Only Practice Memory is shareable.</p>
+      </div>
+    </header>
+
+    <section class="hero card">
+      <div class="hero-copy">
+        <p class="hero-lead">熟練者の動きに宿る知を、次の世代のPractice Memoryへ。</p>
+        <p class="hero-positioning">「見て盗む」だけでは残しきれない知を、次の世代へ。</p>
+      </div>
+      <div class="hero-note">
+        <div class="badge">What it captures</div>
+        <p>Kiwami Captureは、熟練者の実演から、後継者や反復練習者が見逃しやすい動き・タイミング・力加減・判断の勘所を抽出し、次の稽古に活かせるPractice Memoryへ変換します。</p>
+        <p class="muted">Expert Motion → Practice Memory</p>
+      </div>
+    </section>
+
+    <section class="workflow-strip card">
+      <div class="workflow-step"><span>1</span><strong>Upload</strong><p>Master Clip, optional Practice Clip, optional Context Layers</p></div>
+      <div class="workflow-step"><span>2</span><strong>Key Moments</strong><p>Review the expert motion and what successors should notice</p></div>
+      <div class="workflow-step"><span>3</span><strong>Practice Memory</strong><p>Turn the learning essence into a reusable card</p></div>
+      <div class="workflow-step"><span>4</span><strong>Export</strong><p>Save Markdown or JSON for local sharing</p></div>
+    </section>
+
+    <section class="card form-card">
+      <div class="section-head">
+        <h2>Start Capture</h2>
+        <p class="muted">Master Clip is required. Practice Clip, Audio / Spoken Hint, and Context Note are optional enhancement layers.</p>
+      </div>
+      <form action="{{ url_for('process') }}" method="post" enctype="multipart/form-data" class="capture-form">
+        <label class="field-card">
+          <span class="field-title">Master Clip</span>
+          <span class="field-hint">Required. The expert demonstration you want to preserve.</span>
+          <input type="file" name="master_clip" accept="video/*" required>
+        </label>
+
+        <div class="field-card">
+          <label>
+            <span class="field-title">Craft Name</span>
+            <span class="field-hint">Example: Pottery Centering Technique</span>
+            <input type="text" name="craft" value="Pottery Centering Technique" required>
+          </label>
+        </div>
+
+        <details class="field-card optional-layers" open>
+          <summary>
+            <span class="field-title">Optional Layers</span>
+            <span class="field-hint">＋ Add Practice Clip · ＋ Add Audio / Spoken Hint · ＋ Add Context Note</span>
+          </summary>
+          <div class="optional-layer-grid">
+            <label>
+              <span class="field-title">Practice Clip</span>
+              <span class="field-hint">Optional. A learner attempt or repeated practice clip.</span>
+              <input type="file" name="practice_clip" accept="video/*">
+            </label>
+            <label>
+              <span class="field-title">Audio / Spoken Hint</span>
+              <span class="field-hint">Optional. Upload a short audio clip or voice note.</span>
+              <input type="file" name="audio_clip" accept="audio/*">
+            </label>
+            <label>
+              <span class="field-title">Audio / Spoken Hint Text</span>
+              <span class="field-hint">Optional. Paste a short transcript, work sound cue, or spoken hint.</span>
+              <textarea name="audio_context" rows="3"></textarea>
+            </label>
+            <label>
+              <span class="field-title">Context Note / Master Hint</span>
+              <span class="field-hint">Optional. Tool name, short expert explanation, or field observation.</span>
+              <textarea name="master_hint" rows="4">Do not force the clay. Keep your hands steady, use light pressure, and wait until the center becomes stable.</textarea>
+            </label>
+            <label>
+              <span class="field-title">Tool Name</span>
+              <span class="field-hint">Optional. User-provided tool label if known.</span>
+              <input type="text" name="tool_name" placeholder="User-provided / not visually confirmed">
+            </label>
+            <label>
+              <span class="field-title">Tool Type</span>
+              <span class="field-hint">Optional. Example: brush, knife, wheel, nozzle.</span>
+              <input type="text" name="tool_type" placeholder="User-provided / not visually confirmed">
+            </label>
+            <label>
+              <span class="field-title">Material</span>
+              <span class="field-hint">Optional. Example: clay, wood, metal, fabric.</span>
+              <input type="text" name="material" placeholder="User-provided / not visually confirmed">
+            </label>
+            <label>
+              <span class="field-title">Process Step</span>
+              <span class="field-hint">Optional. Example: setup, stabilize, pause, release.</span>
+              <input type="text" name="process_step" placeholder="User-provided / not visually confirmed">
+            </label>
+          </div>
+          <p class="muted small">Add a Practice Clip when direct comparison is available. Add Audio or Context Note when you want to enrich the capture.</p>
+        </details>
+
+        <div class="field-card mode-card">
+          <div class="mode-header">
+            <div>
+              <span class="field-title">AI Mode</span>
+              <span class="field-hint">Choose the level of generation you want for this session</span>
+            </div>
+          </div>
+          <div class="mode-grid">
+            <label class="mode-option primary-mode">
+              <input type="radio" name="mode" value="liquid lfm" checked>
+              <div>
+                <strong>Liquid LFM</strong>
+                <p>Primary local Practice Memory generation mode.</p>
+              </div>
+            </label>
+            <label class="mode-option">
+              <input type="radio" name="mode" value="rule">
+              <div>
+                <strong>Rule</strong>
+                <p>Fallback for structured skill-memory generation from the available inputs.</p>
+              </div>
+            </label>
+            <label class="mode-option">
+              <input type="radio" name="mode" value="mock">
+              <div>
+                <strong>Mock</strong>
+                <p>Development and demo safety output.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-actions home-actions">
+          <button type="submit" class="primary-btn">Start Capture</button>
+          <div class="muted small">Local upload flow. No account required. No database required.</div>
+        </div>
+      </form>
+    </section>
+
+    <section class="copy-grid">
+      <div class="card">
+        <div class="eyebrow">Positioning</div>
+        <p>Kiwami Capture handles knowledge that is hard to turn into manuals. It keeps raw skill video local and turns only the learning essence into Practice Memory.</p>
+        <p class="muted">YouTube shows the demonstration. Kiwami Capture preserves what successors should notice and practice.</p>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Privacy</div>
+        <p>Raw clips stay local. Only Practice Memory is shareable.</p>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Why it matters</div>
+        <p>Workplaces and craft teams can preserve the learning essence without exposing the raw source video.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Mode Guide</h2>
+        <p class="muted">The modes are intentionally simple. They explain how much structure the app should add today.</p>
+      </div>
+      <div class="mode-guide-grid">
+        <article class="mode-guide-card">
+          <div class="eyebrow">Primary</div>
+          <h3>Liquid LFM</h3>
+          <p>Primary local Practice Memory generation mode.</p>
+        </article>
+        <article class="mode-guide-card">
+          <div class="eyebrow">Fallback</div>
+          <h3>Rule</h3>
+          <p>Fallback for structured skill-memory generation from the available inputs.</p>
+        </article>
+        <article class="mode-guide-card">
+          <div class="eyebrow">Safety</div>
+          <h3>Mock</h3>
+          <p>Development and demo safety output.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="archive-card card">
+      <div class="section-head">
+        <h2>Local Session Archive</h2>
+        <p class="muted">Recent local captures stored on this machine.</p>
+      </div>
+      {% if sessions %}
+        <div class="session-list">
+          {% for session in sessions %}
+            <article class="session-item">
+              <div>
+                <strong>{{ session.craft or 'Untitled capture' }}</strong>
+                <p class="muted small">{{ session.session_id }} · {{ session.mode or 'mock' }} · {{ session.status or 'created' }}</p>
+              </div>
+              <div class="session-links">
+                <a href="{{ url_for('compare', session_id=session.session_id) }}">Compare</a>
+                <a href="{{ url_for('memory', session_id=session.session_id) }}">Memory</a>
+                <a href="{{ url_for('judge', session_id=session.session_id) }}">Project Explanation</a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="muted">No sessions yet. Upload a master clip and an apprentice clip to create the first archive entry.</p>
+      {% endif %}
+    </section>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <section class="card flash">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+  </div>
+</body>
+</html>

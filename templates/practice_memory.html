@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiwami Capture · Practice Memory</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar compact">
+      <div>
+        <div class="eyebrow">Editable Practice Memory</div>
+        <h1 class="{% if data.visual_evidence_status != 'confirmed_craft' %}muted{% endif %}">{{ practice_memory.craft }}</h1>
+        <p class="muted">Only Practice Memory is shareable. Raw clips stay local.</p>
+      </div>
+      <div class="top-links">
+        <a href="{{ url_for('compare', session_id=data.session_id) }}">Compare</a>
+        <a href="{{ url_for('judge', session_id=data.session_id) }}">Project Explanation</a>
+        <a href="{{ url_for('index') }}">Home</a>
+      </div>
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <section class="card flash">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+
+    <section class="memory-header card">
+      <div>
+        <div class="badge">Local-first capture</div>
+        <h2>Practice Memory</h2>
+        <p class="muted">This is not a video summary. This captures what successors should notice and practice.</p>
+        {% if data.guidance_source == 'Context-guided fallback after Liquid LFM attempt' %}
+          <p class="muted">Practice guidance generated from selected frames and user-provided craft context.</p>
+        {% elif data.guidance_source == 'Frame-confirmed guidance' %}
+          <p class="muted">Practice guidance generated from the selected frames.</p>
+        {% else %}
+          <p class="muted">Practice guidance generated from the selected frames and the craft context provided by the user.</p>
+        {% endif %}
+      </div>
+      <div class="memory-snapshot">
+        <div>
+          <span class="snapshot-label">User Label</span>
+          <strong>{{ practice_memory.craft }}</strong>
+        </div>
+        <div>
+          <span class="snapshot-label">Model Mode</span>
+          <strong>{{ practice_memory.model_mode }}</strong>
+        </div>
+      </div>
+    </section>
+
+    {% if data.model_notice %}
+      <section class="card flash">
+        <p>{{ data.model_notice }}</p>
+      </section>
+    {% endif %}
+
+    <section class="grid-2">
+      <div class="card memory-card">
+        <form action="{{ url_for('memory_update', session_id=data.session_id) }}" method="post" class="memory-form">
+          <label><span>Skill Focus</span><input type="text" name="skill_focus" value="{{ practice_memory.skill_focus }}"></label>
+          <div class="memory-group accent">
+            <div class="memory-group-head">Watch First</div>
+            <textarea name="watch_points" rows="4">{{ watch_points_text }}</textarea>
+          </div>
+          <div class="memory-group accent">
+            <div class="memory-group-head">20-second Drill</div>
+            <textarea name="practice_task" rows="4">{{ practice_memory.practice_task }}</textarea>
+          </div>
+          <div class="memory-group accent">
+            <div class="memory-group-head">Step-by-step Practice</div>
+            <textarea name="step_by_step_motion" rows="4">{{ practice_memory.step_by_step_motion }}</textarea>
+          </div>
+          <div class="memory-group accent">
+            <div class="memory-group-head">What to Copy</div>
+            <textarea name="what_to_copy" rows="3">{{ practice_memory.what_to_copy }}</textarea>
+          </div>
+          <div class="memory-group warn">
+            <div class="memory-group-head">What to Avoid</div>
+            <textarea name="what_to_avoid" rows="3">{{ practice_memory.what_to_avoid }}</textarea>
+          </div>
+          <div class="memory-group">
+            <div class="memory-group-head">Success Sign</div>
+            <textarea name="success_sign" rows="3">{{ practice_memory.success_sign }}</textarea>
+          </div>
+          <div class="memory-group">
+            <div class="memory-group-head">Next Practice Drill</div>
+            <textarea name="next_practice_drill" rows="3">{{ practice_memory.next_practice_drill }}</textarea>
+          </div>
+          <div class="memory-group warn">
+            <div class="memory-group-head">Common Mistake</div>
+            <textarea name="common_mistake" rows="3">{{ practice_memory.common_mistake }}</textarea>
+          </div>
+          <div class="memory-group">
+            <div class="memory-group-head">Timing Cue</div>
+            <textarea name="timing_cue" rows="2">{{ practice_memory.timing_cue }}</textarea>
+          </div>
+          <div class="memory-group">
+            <div class="memory-group-head">Motion Cue</div>
+            <textarea name="motion_cue" rows="3">{{ practice_memory.motion_cue }}</textarea>
+          </div>
+          <div class="memory-group">
+            <div class="memory-group-head">Material Cue</div>
+            <textarea name="material_cue" rows="3">{{ practice_memory.material_cue }}</textarea>
+          </div>
+          <div class="memory-group">
+            <div class="memory-group-head">Sound Cue</div>
+            <textarea name="sound_cue" rows="3">{{ practice_memory.sound_cue }}</textarea>
+          </div>
+          <div class="memory-group">
+            <div class="memory-group-head">Evidence</div>
+            <textarea name="evidence" rows="4">{{ evidence_text }}</textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="primary-btn">Save Updates</button>
+            <a href="{{ url_for('export_markdown_route', session_id=data.session_id) }}">Export Markdown</a>
+            <a href="{{ url_for('export_json_route', session_id=data.session_id) }}">Export JSON</a>
+            <a href="{{ url_for('export_training_jsonl_route', session_id=data.session_id) }}">Export Training JSONL</a>
+            <a class="primary-btn" href="{{ url_for('judge', session_id=data.session_id) }}">Open Project Explanation</a>
+          </div>
+        </form>
+      </div>
+      <div class="card memory-side">
+        <h2>Session Context</h2>
+        <dl class="info-list">
+          <div><dt>User Label</dt><dd>{{ practice_memory.craft }}</dd></div>
+          <div><dt>Guidance Source</dt><dd>{{ practice_memory.guidance_source or data.guidance_source or 'Unspecified' }}</dd></div>
+          <div><dt>Master Hint</dt><dd>{{ practice_memory.master_hint if data.visual_evidence_status == 'confirmed_craft' else 'Shown on Project Explanation when the frames do not confirm the craft label.' }}</dd></div>
+          <div><dt>Privacy Mode</dt><dd>{{ practice_memory.privacy_mode }}</dd></div>
+          <div><dt>Model Mode</dt><dd>{{ practice_memory.model_mode }}</dd></div>
+          <div><dt>Skill Profile</dt><dd>{{ practice_memory.skill_profile or practice_memory.craft }}</dd></div>
+          <div><dt>Approved for Tuning</dt><dd>{{ 'Yes' if practice_memory.approved_for_tuning else 'No' }}</dd></div>
+          <div><dt>Shareable</dt><dd>{{ 'Yes' if practice_memory.shareable else 'No' }}</dd></div>
+        </dl>
+        <div class="memory-group">
+          <div class="memory-group-head">Step-by-step Practice</div>
+          <p>{{ practice_memory.step_by_step_motion }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div class="eyebrow">Expert Review / Optimization</div>
+        <p class="muted">AI Draft → Expert Review → Tuning Record</p>
+      </div>
+      <form action="{{ url_for('memory_review', session_id=data.session_id) }}" method="post" class="memory-form">
+        <label>
+          <span>Expert Correction</span>
+          <textarea name="expert_correction" rows="4">{{ practice_memory.expert_correction }}</textarea>
+        </label>
+        <label>
+          <span>Reviewer Note</span>
+          <textarea name="reviewer_note" rows="3">{{ practice_memory.reviewer_note }}</textarea>
+        </label>
+        <label>
+          <span>Skill Profile</span>
+          <input type="text" name="skill_profile" value="{{ practice_memory.skill_profile or practice_memory.craft }}">
+        </label>
+        <label class="review-check">
+          <input type="checkbox" name="approved_for_tuning" {% if practice_memory.approved_for_tuning %}checked{% endif %}>
+          <span>Approved for Tuning</span>
+        </label>
+        <div class="form-actions">
+          <button type="submit" class="primary-btn">Save Review</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</body>
+</html>
