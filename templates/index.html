@@ -248,7 +248,7 @@
                   <p>{{ latest_practice_memory.timing_cue if latest_practice_memory else 'Upload a Master Clip to generate timing notes.' }}</p>
                 </article>
                 <article class="card demo-observation-card">
-                  <h2>What successors should notice</h2>
+                  <h2>What successors<br>should notice</h2>
                   <p>{% if latest_session.frame_observations %}{{ latest_session.frame_observations[0] }}{% else %}Look for the steady contact point, controlled timing, and the moment of release.{% endif %}</p>
                 </article>
                 <article class="card demo-observation-card">
@@ -450,11 +450,11 @@
               <div class="demo-grid demo-grid-2">
                 <article class="card demo-panel">
                   <div class="memory-group-head">Local-first skill capture</div>
-                  <p>Raw clips stay on the device. Practice Memory is produced locally. Selected frames remain the source of visual evidence.</p>
+                  <p>Raw clips stay on this device. Practice Memory is generated locally. Shareable skill metadata is derived from selected frames and local evidence.</p>
                   <div class="skill-tag-list compact">
-                    <span class="skill-tag">Privacy boundary</span>
+                    <span class="skill-tag">Stays local</span>
                     <span class="skill-tag">Local guidance</span>
-                    <span class="skill-tag">Selected frames</span>
+                    <span class="skill-tag">Frame evidence</span>
                   </div>
                 </article>
                 <article class="card demo-panel">
@@ -471,7 +471,7 @@
               <div class="demo-grid demo-grid-2">
                 <article class="card demo-panel">
                   <div class="memory-group-head">Skill profile preview</div>
-                  <p>Kiwami Capture preserves skill. The captured shape stays grounded in selected frames and local context.</p>
+                  <p>This preview shows the skill shape captured from selected frames and local evidence.</p>
                   {% set skill_graph = latest_session.skill_graph_visual %}
                   {% if skill_graph and skill_graph.axes %}
                     <div class="skill-radar skill-graph">
@@ -535,11 +535,7 @@
                       <h3>{{ session.session_id }}</h3>
                       <p class="small muted">{{ session.created_at }} · {{ session.status or 'processed locally' }}{% if session.mode %} · {{ session.mode }}{% endif %}</p>
                     </div>
-                    <div class="app-actions archive-actions">
-                      <a class="button button-primary btn-primary" href="{{ url_for('compare', session_id=session.session_id) }}">Review</a>
-                      <a class="button button-outline btn-secondary" href="{{ url_for('memory', session_id=session.session_id) }}">Practice Memory</a>
-                      <a class="button button-outline btn-secondary" href="{{ url_for('judge', session_id=session.session_id) }}">Project Explanation</a>
-                    </div>
+                    <a class="button button-primary btn-primary" href="{{ url_for('compare', session_id=session.session_id) }}">Review</a>
                   </article>
                 {% endfor %}
               </div>
@@ -558,38 +554,43 @@
           <section class="card demo-section">
             <div class="section-head">
               <div class="eyebrow">KIWAMI BRIDGE</div>
-              <h2>Skill can move forward without exposing the raw clip.</h2>
-              <p class="muted">Kiwami Bridge helps preserved skill find where it is needed next.</p>
+              <h2>Where preserved skill can go next.</h2>
+              <p class="muted">Kiwami Bridge keeps the raw clip local and moves only the skill layer outward.</p>
             </div>
 
             {% if latest_session %}
-              <div class="demo-grid demo-grid-2">
-                <article class="card demo-panel">
-                  <div class="memory-group-head">Bridge preview</div>
-                  <p>Kiwami Bridge helps preserved skill find where it is needed next.</p>
-                  <ul class="clean-list">
-                    <li>Skill metadata only</li>
-                    <li>No names</li>
-                    <li>No faces</li>
-                    <li>No raw clips</li>
-                    <li>No private workshop details</li>
-                  </ul>
+              <div class="skill-tag-list compact bridge-tabs">
+                <span class="skill-tag">Craft / Traditional Skills</span>
+                <span class="skill-tag">Manufacturing / Precision Work</span>
+                <span class="skill-tag">Field Maintenance</span>
+                <span class="skill-tag">High-risk / Specialized Operations</span>
+                <span class="skill-tag">Education / Succession</span>
+              </div>
+              <div class="bridge-opportunity-grid">
+                <article class="card bridge-opportunity-card">
+                  <div class="memory-group-head">Craft / Traditional Skills</div>
+                  <strong>{{ latest_session.possible_role_contexts[0] if latest_session.possible_role_contexts else 'Craft mentor' }}</strong>
+                  <p>Preserved skill can support apprenticeships, studio handoff, and hands-on instruction.</p>
                 </article>
-                <article class="card demo-panel">
-                  <div class="memory-group-head">Where skill can go</div>
-                  <div class="skill-tag-list compact">
-                    {% for role in (latest_session.possible_role_contexts[:5] if latest_session.possible_role_contexts else ['Craft mentor', 'Precision assembly trainer', 'Repair technician training', 'Field maintenance skill transfer', 'Cultural heritage restoration support']) %}
-                      <span class="skill-tag">{{ role }}</span>
-                    {% endfor %}
-                  </div>
-                  <div class="skill-tag-list compact">
-                    <span class="skill-tag">Craft / Traditional Skills</span>
-                    <span class="skill-tag">Manufacturing / Precision Work</span>
-                    <span class="skill-tag">Field Maintenance</span>
-                    <span class="skill-tag">High-risk / Specialized Operations</span>
-                    <span class="skill-tag">Education / Succession</span>
-                  </div>
-                  <p class="muted">Practice Memory can move forward. Skill tags can move forward. Archive metadata can move forward.</p>
+                <article class="card bridge-opportunity-card">
+                  <div class="memory-group-head">Manufacturing / Precision Work</div>
+                  <strong>{{ latest_session.possible_role_contexts[1] if latest_session.possible_role_contexts|length > 1 else 'Precision assembly trainer' }}</strong>
+                  <p>Precise hand judgment can transfer into repeatable production and assembly settings.</p>
+                </article>
+                <article class="card bridge-opportunity-card">
+                  <div class="memory-group-head">Field Maintenance</div>
+                  <strong>{{ latest_session.possible_role_contexts[3] if latest_session.possible_role_contexts|length > 3 else 'Field maintenance skill transfer' }}</strong>
+                  <p>Tool handling and timing translate into repair, upkeep, and field support roles.</p>
+                </article>
+                <article class="card bridge-opportunity-card">
+                  <div class="memory-group-head">High-risk / Specialized Operations</div>
+                  <strong>{{ latest_session.possible_role_contexts[2] if latest_session.possible_role_contexts|length > 2 else 'Specialized operations support' }}</strong>
+                  <p>Skill metadata can point to careful, high-stakes work where timing and control matter.</p>
+                </article>
+                <article class="card bridge-opportunity-card">
+                  <div class="memory-group-head">Education / Succession</div>
+                  <strong>{{ latest_session.possible_role_contexts[4] if latest_session.possible_role_contexts|length > 4 else 'Cultural heritage restoration support' }}</strong>
+                  <p>Teaching, mentorship, and succession planning can reuse the same preserved skill shape.</p>
                 </article>
               </div>
               <div class="app-actions">

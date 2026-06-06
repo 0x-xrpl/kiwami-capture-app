@@ -378,8 +378,8 @@ def compare(session_id: str):
     except FileNotFoundError:
         abort(404)
 
-    master_frames = data.get("frames", {}).get("master", [])
-    practice_frames = data.get("frames", {}).get("practice", []) or data.get("frames", {}).get("apprentice", [])
+    master_frames = _visible_frame_manifest(data.get("frames", {}).get("master", []))
+    practice_frames = _visible_frame_manifest(data.get("frames", {}).get("practice", []) or data.get("frames", {}).get("apprentice", []))
     practice_kind = "practice" if data.get("frames", {}).get("practice") else "apprentice"
     uploads = data.setdefault("uploads", {})
     if "practice_clip" not in uploads and uploads.get("apprentice_clip"):

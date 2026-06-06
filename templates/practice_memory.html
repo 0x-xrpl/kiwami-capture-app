@@ -19,8 +19,11 @@
 
       <nav class="topnav" aria-label="Primary">
         <a href="{{ url_for('index') }}">Capture</a>
-        <a href="{{ url_for('index') }}#summary">Archive</a>
-        <a href="{{ url_for('index') }}#summary">Bridge</a>
+        <a href="{{ url_for('compare', session_id=data.session_id) }}">Review</a>
+        <a href="{{ url_for('memory', session_id=data.session_id) }}">Practice Memory</a>
+        <a href="{{ url_for('judge', session_id=data.session_id) }}">Project Explanation</a>
+        <a href="{{ url_for('index') }}#archive">Archive</a>
+        <a href="{{ url_for('index') }}#bridge">Bridge</a>
       </nav>
 
       <div class="topbar-actions">
@@ -44,11 +47,6 @@
         <div class="eyebrow">PRACTICE MEMORY</div>
         <h1 class="{% if data.visual_evidence_status != 'confirmed_craft' %}muted{% endif %}">Readable guidance from selected motion.</h1>
         <p class="muted">Only Practice Memory is shareable. Raw clips stay local.</p>
-      </div>
-      <div class="app-actions">
-        <a class="button button-primary btn-primary" href="{{ url_for('compare', session_id=data.session_id) }}">Review</a>
-        <a class="button button-outline btn-secondary" href="{{ url_for('judge', session_id=data.session_id) }}">Project Explanation</a>
-        <a class="button button-outline btn-secondary" href="{{ url_for('index') }}">Home</a>
       </div>
     </section>
 

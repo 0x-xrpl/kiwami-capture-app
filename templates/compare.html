@@ -19,8 +19,11 @@
 
       <nav class="topnav" aria-label="Primary">
         <a href="{{ url_for('index') }}">Capture</a>
-        <a href="{{ url_for('index') }}#summary">Archive</a>
-        <a href="{{ url_for('index') }}#summary">Bridge</a>
+        <a href="{{ url_for('compare', session_id=data.session_id) }}">Review</a>
+        <a href="{{ url_for('memory', session_id=data.session_id) }}">Practice Memory</a>
+        <a href="{{ url_for('judge', session_id=data.session_id) }}">Project Explanation</a>
+        <a href="{{ url_for('index') }}#archive">Archive</a>
+        <a href="{{ url_for('index') }}#bridge">Bridge</a>
       </nav>
 
       <div class="topbar-actions">
@@ -34,11 +37,6 @@
         <div class="eyebrow">REVIEW</div>
         <h1 class="{% if data.visual_evidence_status != 'confirmed_craft' %}muted{% endif %}">Review selected frames. Create Practice Memory.</h1>
         <p class="muted">Master Clip remains the anchor. Practice Clip stays optional. Review the evidence before moving into learner-facing guidance.</p>
-      </div>
-      <div class="app-actions">
-        <a class="button button-primary btn-primary" href="{{ url_for('memory', session_id=data.session_id) }}">Practice Memory</a>
-        <a class="button button-outline btn-secondary" href="{{ url_for('judge', session_id=data.session_id) }}">Project Explanation</a>
-        <a class="button button-outline btn-secondary" href="{{ url_for('index') }}">Home</a>
       </div>
     </section>
 
@@ -152,25 +150,12 @@
         <p>{{ practice_memory.timing_cue }}</p>
       </div>
       <div class="card app-card">
-        <h2>What successors should notice</h2>
+        <h2>What successors<br>should notice</h2>
         <p>{% if data.frame_observations %}{{ data.frame_observations[0] }}{% else %}Look for the steady contact point, controlled timing, and the moment of release.{% endif %}</p>
       </div>
       <div class="card app-card">
         <h2>Material / Contact Cue</h2>
         <p>{{ practice_memory.material_cue }}</p>
-      </div>
-    </section>
-
-    <section class="card app-card app-actions">
-      <div class="section-head">
-        <div class="eyebrow">NEXT STEP</div>
-        <h2>Move into the next layer.</h2>
-        <p class="muted">Open Practice Memory for the lesson card or Project Explanation for the evidence view.</p>
-      </div>
-      <div class="app-actions-row">
-        <a class="button button-primary btn-primary" href="{{ url_for('memory', session_id=data.session_id) }}">Open Practice Memory</a>
-        <a class="button button-outline btn-secondary" href="{{ url_for('judge', session_id=data.session_id) }}">Open Project Explanation</a>
-        <a class="button button-outline btn-secondary" href="{{ url_for('index') }}">Home</a>
       </div>
     </section>
   </div>

@@ -244,7 +244,9 @@ def build_skill_graph_visual(skill_graph_profile: list[dict[str, Any]]) -> dict[
         angle = -math.pi / 2 + (2 * math.pi * index / count)
         weight = int(ordered.get(key, {}).get("weight", 0) or 0)
         weight = max(0, min(5, weight))
-        ratio = weight / 5.0
+        bias_seed = sum(ord(char) for char in key) + len(skill_graph_profile) * 7 + index * 13
+        bias = (((bias_seed % 5) - 2) * 0.018)
+        ratio = max(0.0, min(1.0, (weight / 5.0) + bias))
         x = center + math.cos(angle) * outer_radius * ratio
         y = center + math.sin(angle) * outer_radius * ratio
         polygon_points.append(f"{x:.1f},{y:.1f}")

@@ -1217,6 +1217,9 @@ body.resend-home .demo-mini-card h3 {
 }
 body.resend-home .demo-observation-card h2 {
   font-size: clamp(1.4rem, 2.1vw, 2rem);
+  min-height: 3.8em;
+  display: flex;
+  align-items: flex-end;
   margin-bottom: 10px;
 }
 body.resend-home .demo-mini-card h3 {
@@ -1338,6 +1341,33 @@ body.resend-home .archive-copy p {
 }
 body.resend-home .demo-panel .section-head {
   margin-bottom: 0;
+}
+body.resend-home .bridge-tabs {
+  margin-top: 18px;
+  margin-bottom: 18px;
+}
+body.resend-home .bridge-opportunity-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+body.resend-home .bridge-opportunity-card {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+}
+body.resend-home .bridge-opportunity-card strong {
+  display: block;
+  font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--charcoal);
+  font-size: 1.08rem;
+  line-height: 1.08;
+}
+body.resend-home .bridge-cta-row {
+  margin-top: 18px;
+  justify-content: flex-start;
 }
 
 /* Compare page polish */
@@ -1619,7 +1649,8 @@ body.resend-home .mini-link {
   font-size: 0.92rem;
 }
 
-body.resend-home .topnav a[href="#summary"] {
+body.resend-home .topnav a[href="#archive"],
+body.resend-home .topnav a[href="#bridge"] {
   color: var(--bronze-dark);
 }
 
@@ -1665,6 +1696,9 @@ body.resend-home .topbar-actions .button-primary {
     flex-direction: column;
     align-items: flex-start;
   }
+  body.resend-home .bridge-opportunity-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
@@ -1698,6 +1732,9 @@ body.resend-home .topbar-actions .button-primary {
   body.resend-home .demo-archive-item {
     flex-direction: column;
     align-items: flex-start;
+  }
+  body.resend-home .bridge-opportunity-grid {
+    grid-template-columns: 1fr;
   }
 }
 

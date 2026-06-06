@@ -19,8 +19,11 @@
 
       <nav class="topnav" aria-label="Primary">
         <a href="{{ url_for('index') }}">Capture</a>
-        <a href="{{ url_for('index') }}#summary">Archive</a>
-        <a href="{{ url_for('index') }}#summary">Bridge</a>
+        <a href="{{ url_for('compare', session_id=data.session_id) }}">Review</a>
+        <a href="{{ url_for('memory', session_id=data.session_id) }}">Practice Memory</a>
+        <a href="{{ url_for('judge', session_id=data.session_id) }}">Project Explanation</a>
+        <a href="{{ url_for('index') }}#archive">Archive</a>
+        <a href="{{ url_for('index') }}#bridge">Bridge</a>
       </nav>
 
       <div class="topbar-actions">
@@ -35,30 +38,29 @@
         <h1 class="{% if data.visual_evidence_status != 'confirmed_craft' %}muted{% endif %}">How the result was produced. What the evidence supports.</h1>
         <p class="muted">Kiwami keeps learning guidance grounded in selected frames, local context, and evidence limits.</p>
       </div>
-      <div class="app-actions">
-        <a class="button button-primary btn-primary" href="{{ url_for('compare', session_id=data.session_id) }}">Review</a>
-        <a class="button button-outline btn-secondary" href="{{ url_for('memory', session_id=data.session_id) }}">Practice Memory</a>
-        <a class="button button-outline btn-secondary" href="{{ url_for('index') }}">Home</a>
-      </div>
     </section>
 
-    <section class="card app-card">
-      <div class="section-head">
-        <div class="eyebrow">LOCAL-FIRST SKILL CAPTURE</div>
-        <h2>Kiwami Capture preserves skill. Kiwami Bridge helps that skill find where it is needed next.</h2>
-        <p class="muted">Raw clips stay on the device. Practice Memory is produced locally. Selected frames remain the source of visual evidence.</p>
-      </div>
-      <div class="bridge-stack">
-        <div>
-          <div class="bridge-label">Privacy boundary</div>
-          <p>Raw video stays local. Only skill metadata can move forward.</p>
+      <section class="card app-card">
+        <div class="section-head">
+          <div class="eyebrow">LOCAL-FIRST SKILL CAPTURE</div>
+          <h2>Kiwami Capture preserves skill. Kiwami Bridge helps that skill find where it is needed next.</h2>
+          <p class="muted">Raw clips stay on this device. Practice Memory is generated locally. Shareable skill metadata is derived from selected frames and local evidence.</p>
         </div>
-        <div>
-          <div class="bridge-label">Bridge preview</div>
-          <p>Craft / manufacturing / field maintenance / regulated work / education.</p>
+        <div class="bridge-stack">
+          <div>
+            <div class="bridge-label">Stays local</div>
+            <p>Raw video stays local. Only skill metadata can move forward.</p>
+          </div>
+          <div>
+            <div class="bridge-label">Frame evidence</div>
+            <p>Selected frames and local motion evidence shape the shareable skill layer.</p>
+          </div>
+          <div>
+            <div class="bridge-label">Local guidance</div>
+            <p>Practice Memory is produced locally before any bridge preview is shown.</p>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
     <section class="app-grid judge-grid judge-grid-two">
       <div class="card app-card">

@@ -38,6 +38,15 @@ def _fallback_frame(output_path: Path, label: str) -> str:
     return str(output_path)
 
 
+def _candidate_frame_numbers(frame_number: int, total_frames: int) -> list[int]:
+    candidates = [frame_number]
+    for offset in (1, -1, 2, -2, 3, -3):
+        candidate = frame_number + offset
+        if 0 <= candidate < total_frames and candidate not in candidates:
+            candidates.append(candidate)
+    return candidates
+
+
 def extract_key_frames(video_path: str, output_dir: str | Path, max_frames: int = 6) -> list[str]:
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -62,9 +71,14 @@ def extract_key_frames(video_path: str, output_dir: str | Path, max_frames: int 
         sample_indexes = [0]
 
     for index, frame_number in enumerate(sample_indexes, start=1):
-        capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
-        ok, frame = capture.read()
-        if not ok or frame is None:
+        frame = None
+        for candidate in _candidate_frame_numbers(frame_number, total_frames):
+            capture.set(cv2.CAP_PROP_POS_FRAMES, candidate)
+            ok, candidate_frame = capture.read()
+            if ok and candidate_frame is not None:
+                frame = candidate_frame
+                break
+        if frame is None:
             path = output_dir / f"fallback_{index}.png"
             frame_paths.append(_fallback_frame(path, f"Frame {index}"))
             continue
