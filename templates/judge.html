@@ -72,6 +72,30 @@
       {% endif %}
     </section>
 
+    <section class="card">
+      <h2>Motion Evidence Scan</h2>
+      <dl class="info-list">
+        <div><dt>Motion Score</dt><dd>{{ data.motion_score_summary or 'OpenCV frame change only' }}</dd></div>
+        <div>
+          <dt>Hand Evidence</dt>
+          <dd>
+            {% if data.hand_evidence_status == 'detected' %}
+              Detected: {{ data.detected_hands|title }}
+            {% else %}
+              {{ data.hand_evidence_status|replace('_', ' ')|title }}
+            {% endif %}
+          </dd>
+        </div>
+        <div><dt>Hand Visibility</dt><dd>{{ '%.0f'|format((data.hand_visible_ratio or 0) * 100) }}%</dd></div>
+        <div><dt>Selected Key Moments</dt><dd>{{ data.selected_key_moments|join(', ') if data.selected_key_moments else 'Key frames were selected locally.' }}</dd></div>
+      </dl>
+      <ul class="clean-list">
+        {% for item in data.evidence_limits %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+
     <section class="grid-2">
       <div class="card">
         <h2>What was extracted</h2>

@@ -43,6 +43,9 @@
         {% else %}
           <p class="muted">Practice guidance generated from the selected frames and the craft context provided by the user.</p>
         {% endif %}
+        {% if data.hand_evidence_status == 'detected' %}
+          <p class="muted">Hand contact was visible in the selected frames, so the cues lean on steady contact and slow release.</p>
+        {% endif %}
       </div>
       <div class="memory-snapshot">
         <div>

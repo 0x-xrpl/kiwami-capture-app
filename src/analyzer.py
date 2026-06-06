@@ -10,6 +10,11 @@ from .adapters.liquid_text_adapter import LiquidResponseError, generate_practice
 from .model_status import liquid_config, liquid_server_reachable, mode_display_label, model_notice_for_failure
 from .schema import PracticeMemory
 
+try:
+    import mediapipe as mp
+except Exception:
+    mp = None
+
 
 def _craft_slug(craft: str) -> str:
     return (craft or "").strip().lower()
@@ -59,8 +64,99 @@ def _select_master_keyframes(master_frames: list[dict[str, Any]]) -> list[dict[s
     return []
 
 
+def _selected_key_moments(selected_frames: list[dict[str, Any]]) -> list[str]:
+    moments: list[str] = []
+    for index, frame in enumerate(selected_frames, start=1):
+        label = str(frame.get("label") or frame.get("filename") or f"Key frame {index}").strip()
+        if label:
+            moments.append(label)
+    return moments
+
+
 def _is_fallback_frame(path: str) -> bool:
     return Path(path).name.startswith("fallback_")
+
+
+def _scan_hand_evidence(selected_frames: list[dict[str, Any]]) -> dict[str, Any]:
+    result = {
+        "hand_detected": False,
+        "hand_visible_ratio": 0.0,
+        "detected_hands": "unavailable" if mp is None else "unknown",
+        "hand_keyframes": [],
+        "hand_evidence_status": "unavailable" if mp is None else "not_detected",
+    }
+    if mp is None or not selected_frames:
+        return result
+
+    try:
+        hands = mp.solutions.hands.Hands(
+            static_image_mode=True,
+            max_num_hands=2,
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5,
+        )
+    except Exception:
+        result["hand_evidence_status"] = "error"
+        result["detected_hands"] = "unknown"
+        return result
+
+    detected_frames = 0
+    processed_frames = 0
+    hand_labels: set[str] = set()
+    hand_keyframes: list[str] = []
+
+    with hands:
+        for index, frame in enumerate(selected_frames, start=1):
+            path = str(frame.get("path", "")).strip()
+            if not path or _is_fallback_frame(path) or not Path(path).exists():
+                continue
+            image = cv2.imread(path)
+            if image is None:
+                continue
+            processed_frames += 1
+            try:
+                rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                results = hands.process(rgb)
+            except Exception:
+                continue
+            if not results.multi_hand_landmarks:
+                continue
+            detected_frames += 1
+            frame_name = str(frame.get("filename") or frame.get("label") or f"Key frame {index}").strip()
+            if frame_name:
+                hand_keyframes.append(frame_name)
+            handedness = getattr(results, "multi_handedness", None) or []
+            for entry in handedness:
+                try:
+                    label = str(entry.classification[0].label).strip().lower()
+                except Exception:
+                    label = ""
+                if label in {"left", "right"}:
+                    hand_labels.add(label)
+
+    if detected_frames > 0:
+        if "left" in hand_labels and "right" in hand_labels:
+            detected_hands = "both"
+        elif "left" in hand_labels:
+            detected_hands = "left"
+        elif "right" in hand_labels:
+            detected_hands = "right"
+        else:
+            detected_hands = "unknown"
+        result.update(
+            {
+                "hand_detected": True,
+                "hand_visible_ratio": round(detected_frames / float(processed_frames or len(selected_frames) or 1), 3),
+                "detected_hands": detected_hands,
+                "hand_keyframes": list(dict.fromkeys(hand_keyframes)),
+                "hand_evidence_status": "detected",
+            }
+        )
+        return result
+
+    result["detected_hands"] = "unknown"
+    result["hand_evidence_status"] = "not_detected"
+    return result
 
 
 def _describe_frame(path: str, index: int) -> tuple[str, bool, float]:
@@ -247,6 +343,52 @@ def _visual_observation_summary(status: str, frame_summary: str, frame_observati
     if status == "visual_uncertain":
         return f"{base} Craft-specific guidance is not visually confirmed."
     return f"{base} The user-provided craft label is not visually confirmed."
+
+
+def _hand_evidence_summary(hand_evidence: dict[str, Any]) -> str:
+    status = str(hand_evidence.get("hand_evidence_status", "unavailable"))
+    if status == "detected":
+        count = len(hand_evidence.get("hand_keyframes", []))
+        hand_side = str(hand_evidence.get("detected_hands", "unknown"))
+        if hand_side == "both":
+            return f"Both hands were detected in {count} selected keyframe(s)."
+        elif hand_side in {"left", "right"}:
+            hand_text = f"the {hand_side} hand"
+        else:
+            hand_text = "hand contact"
+        return f"{hand_text.capitalize()} was detected in {count} selected keyframe(s)."
+    if status == "not_detected":
+        return "No hands were detected in the selected keyframes."
+    if status == "error":
+        return "Hand evidence scan failed, so the app fell back to OpenCV-only evidence."
+    return "Hand evidence scan was unavailable, so the app used OpenCV-only evidence."
+
+
+def _motion_score_summary(frame_observation_summary: str, hand_evidence: dict[str, Any]) -> str:
+    parts = [frame_observation_summary or "Selected frames were reviewed locally."]
+    parts.append(_hand_evidence_summary(hand_evidence))
+    return " ".join(part for part in parts if part).strip()
+
+
+def _hand_guided_practice(memory: PracticeMemory, hand_evidence: dict[str, Any]) -> PracticeMemory:
+    if str(hand_evidence.get("hand_evidence_status", "")).strip() != "detected":
+        return memory
+
+    hand_keyframes = [str(item).strip() for item in hand_evidence.get("hand_keyframes", []) if str(item).strip()]
+    if hand_keyframes:
+        evidence_line = f"Hand evidence was visible in {', '.join(hand_keyframes[:2])}."
+        if evidence_line not in memory.evidence:
+            memory.evidence.insert(0, evidence_line)
+
+    if not memory.motion_cue or "hand" not in memory.motion_cue.lower():
+        memory.motion_cue = "Watch where the hands contact the material and keep the release slow."
+    if not memory.what_to_copy or "hand" not in memory.what_to_copy.lower():
+        memory.what_to_copy = "Copy the steady contact and slow release visible in the hands."
+    if not memory.what_to_avoid or "hand" not in memory.what_to_avoid.lower():
+        memory.what_to_avoid = "Avoid sudden one-sided pressure or a rushed release."
+    if not memory.practice_task or "hand" not in memory.practice_task.lower():
+        memory.practice_task = memory.practice_task or "Watch where the hands contact the material, then repeat the steady contact and slow release."
+    return memory
 
 
 def _apply_visual_evidence_guard(memory: PracticeMemory, status: str, frame_summary: str, context_guided: bool = False) -> PracticeMemory:
@@ -534,8 +676,11 @@ def analyze_practice(
     capture_mode_display = "Comparison Capture" if has_practice_clip else "Master-only Capture"
     pottery_context = _has_pottery_context(craft, master_hint, tool_name, tool_type, material, process_step, audio_context)
     selected_master_frames = _select_master_keyframes(master_frames)
+    selected_key_moments = _selected_key_moments(selected_master_frames)
     base_visual_layer = _local_visual_layer(craft, master_hint, selected_master_frames)
     frame_observations, frame_status, frame_observation_summary, frame_delta_summary = _frame_observations(selected_master_frames)
+    hand_evidence = _scan_hand_evidence(selected_master_frames)
+    motion_score_summary = _motion_score_summary(frame_observation_summary, hand_evidence)
     if mode == "rule":
         memory = _pottery_context_memory(craft, master_hint, "rule", "Frame-confirmed guidance") if pottery_context else rule_based_analysis(craft, master_hint)
         model_mode_display = "Rule"
@@ -605,6 +750,19 @@ def analyze_practice(
         "frame_observation_summary": frame_observation_summary,
         "frame_delta_summary": frame_delta_summary,
         "frame_evidence_status": frame_status,
+        "selected_key_moments": selected_key_moments,
+        "motion_score_summary": motion_score_summary,
+        "hand_detected": hand_evidence["hand_detected"],
+        "hand_visible_ratio": hand_evidence["hand_visible_ratio"],
+        "detected_hands": hand_evidence["detected_hands"],
+        "hand_keyframes": hand_evidence["hand_keyframes"],
+        "hand_evidence_status": hand_evidence["hand_evidence_status"],
+        "hand_evidence": hand_evidence,
+        "evidence_limits": [
+            "Pressure is not directly measured.",
+            "Exact mastery is not scored.",
+            "Tool identity may be user-provided if not visually confirmed.",
+        ],
         "visual_layer": visual_layer_data["visual_layer"],
         "visual_observation_summary": visual_observation_summary,
         "ghost_motion_overlay_present": bool(ghost_motion_overlay),
@@ -718,6 +876,7 @@ def analyze_practice(
             f"Selected frames were reviewed locally: {frame_observation_summary or 'Selected frames were reviewed locally.'}",
             "User-provided craft context supported pottery-style practice guidance.",
         ]
+    memory = _hand_guided_practice(memory, hand_evidence)
     memory.guidance_source = guidance_source
 
     summary = _difference_summary(memory, summary_mode, visual_evidence_status, frame_observation_summary)
@@ -747,6 +906,19 @@ def analyze_practice(
         "frame_observation_summary": frame_observation_summary,
         "frame_delta_summary": frame_delta_summary,
         "frame_evidence_status": frame_status,
+        "selected_key_moments": selected_key_moments,
+        "motion_score_summary": motion_score_summary,
+        "hand_detected": hand_evidence["hand_detected"],
+        "hand_visible_ratio": hand_evidence["hand_visible_ratio"],
+        "detected_hands": hand_evidence["detected_hands"],
+        "hand_keyframes": hand_evidence["hand_keyframes"],
+        "hand_evidence_status": hand_evidence["hand_evidence_status"],
+        "hand_evidence": hand_evidence,
+        "evidence_limits": [
+            "Pressure is not directly measured.",
+            "Exact mastery is not scored.",
+            "Tool identity may be user-provided if not visually confirmed.",
+        ],
         "visual_evidence_status": visual_evidence_status,
         "visual_evidence_note": visual_evidence_note,
         "visual_observation_summary": visual_observation_summary,

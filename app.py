@@ -138,6 +138,35 @@ def process():
         "has_practice_clip": bool(practice_path),
         "capture_notes": analysis["capture_notes"],
         "visible_difference_summary": analysis["visible_difference_summary"],
+        "selected_key_moments": analysis.get("selected_key_moments", []),
+        "motion_score_summary": analysis.get("motion_score_summary", ""),
+        "hand_detected": analysis.get("hand_detected", False),
+        "hand_visible_ratio": analysis.get("hand_visible_ratio", 0.0),
+        "detected_hands": analysis.get("detected_hands", "unavailable"),
+        "hand_keyframes": analysis.get("hand_keyframes", []),
+        "hand_evidence_status": analysis.get("hand_evidence_status", "unavailable"),
+        "hand_evidence": analysis.get("hand_evidence", {}),
+        "evidence_limits": analysis.get(
+            "evidence_limits",
+            [
+                "Pressure is not directly measured.",
+                "Exact mastery is not scored.",
+                "Tool identity may be user-provided if not visually confirmed.",
+            ],
+        ),
+        "motion_evidence_scan": {
+            "selected_key_moments": analysis.get("selected_key_moments", []),
+            "motion_score_summary": analysis.get("motion_score_summary", ""),
+            "hand_evidence": analysis.get("hand_evidence", {}),
+            "evidence_limits": analysis.get(
+                "evidence_limits",
+                [
+                    "Pressure is not directly measured.",
+                    "Exact mastery is not scored.",
+                    "Tool identity may be user-provided if not visually confirmed.",
+                ],
+            ),
+        },
         "visual_layer": analysis.get("visual_layer", "Local Keyframes"),
         "suggested_craft_name": analysis.get("suggested_craft_name", craft),
         "suggested_context_note": analysis.get("suggested_context_note", master_hint),
@@ -198,6 +227,35 @@ def compare(session_id: str):
     data.setdefault("frame_observation_summary", "")
     data.setdefault("frame_delta_summary", "")
     data.setdefault("frame_evidence_status", "generic_visible")
+    data.setdefault("selected_key_moments", [])
+    data.setdefault("motion_score_summary", "")
+    data.setdefault("hand_detected", False)
+    data.setdefault("hand_visible_ratio", 0.0)
+    data.setdefault("detected_hands", "unavailable")
+    data.setdefault("hand_keyframes", [])
+    data.setdefault("hand_evidence_status", "unavailable")
+    data.setdefault("hand_evidence", {})
+    data.setdefault(
+        "evidence_limits",
+        [
+            "Pressure is not directly measured.",
+            "Exact mastery is not scored.",
+            "Tool identity may be user-provided if not visually confirmed.",
+        ],
+    )
+    data.setdefault(
+        "motion_evidence_scan",
+        {
+            "selected_key_moments": [],
+            "motion_score_summary": "",
+            "hand_evidence": {},
+            "evidence_limits": [
+                "Pressure is not directly measured.",
+                "Exact mastery is not scored.",
+                "Tool identity may be user-provided if not visually confirmed.",
+            ],
+        },
+    )
     data.setdefault("visual_evidence_status", "weak")
     data.setdefault("visual_evidence_note", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
     data.setdefault("visual_observation_summary", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
@@ -232,6 +290,35 @@ def memory(session_id: str):
     data.setdefault("frame_observation_summary", "")
     data.setdefault("frame_delta_summary", "")
     data.setdefault("frame_evidence_status", "generic_visible")
+    data.setdefault("selected_key_moments", [])
+    data.setdefault("motion_score_summary", "")
+    data.setdefault("hand_detected", False)
+    data.setdefault("hand_visible_ratio", 0.0)
+    data.setdefault("detected_hands", "unavailable")
+    data.setdefault("hand_keyframes", [])
+    data.setdefault("hand_evidence_status", "unavailable")
+    data.setdefault("hand_evidence", {})
+    data.setdefault(
+        "evidence_limits",
+        [
+            "Pressure is not directly measured.",
+            "Exact mastery is not scored.",
+            "Tool identity may be user-provided if not visually confirmed.",
+        ],
+    )
+    data.setdefault(
+        "motion_evidence_scan",
+        {
+            "selected_key_moments": [],
+            "motion_score_summary": "",
+            "hand_evidence": {},
+            "evidence_limits": [
+                "Pressure is not directly measured.",
+                "Exact mastery is not scored.",
+                "Tool identity may be user-provided if not visually confirmed.",
+            ],
+        },
+    )
     data.setdefault("visual_evidence_status", "weak")
     data.setdefault("visual_evidence_note", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
     data.setdefault("visual_observation_summary", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
@@ -304,6 +391,35 @@ def judge(session_id: str):
     data.setdefault("frame_observation_summary", "")
     data.setdefault("frame_delta_summary", "")
     data.setdefault("frame_evidence_status", "generic_visible")
+    data.setdefault("selected_key_moments", [])
+    data.setdefault("motion_score_summary", "")
+    data.setdefault("hand_detected", False)
+    data.setdefault("hand_visible_ratio", 0.0)
+    data.setdefault("detected_hands", "unavailable")
+    data.setdefault("hand_keyframes", [])
+    data.setdefault("hand_evidence_status", "unavailable")
+    data.setdefault("hand_evidence", {})
+    data.setdefault(
+        "evidence_limits",
+        [
+            "Pressure is not directly measured.",
+            "Exact mastery is not scored.",
+            "Tool identity may be user-provided if not visually confirmed.",
+        ],
+    )
+    data.setdefault(
+        "motion_evidence_scan",
+        {
+            "selected_key_moments": [],
+            "motion_score_summary": "",
+            "hand_evidence": {},
+            "evidence_limits": [
+                "Pressure is not directly measured.",
+                "Exact mastery is not scored.",
+                "Tool identity may be user-provided if not visually confirmed.",
+            ],
+        },
+    )
     data.setdefault("visual_evidence_status", "weak")
     data.setdefault("visual_evidence_note", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
     data.setdefault("visual_observation_summary", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
