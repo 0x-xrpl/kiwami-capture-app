@@ -38,6 +38,12 @@ class PracticeMemory:
     reviewer_note: str = ""
     approved_for_tuning: bool = False
     skill_profile: str = ""
+    skill_tags: list[str] = field(default_factory=list)
+    skill_type: list[str] = field(default_factory=list)
+    transfer_potential: list[str] = field(default_factory=list)
+    shortage_relevance: str = ""
+    privacy_boundary: str = ""
+    archive_entry_path: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -69,4 +75,10 @@ class PracticeMemory:
             reviewer_note=str(data.get("reviewer_note", "")).strip(),
             approved_for_tuning=bool(data.get("approved_for_tuning", False)),
             skill_profile=str(data.get("skill_profile", "")).strip() or str(data.get("craft", "")).strip(),
+            skill_tags=_clean_list(data.get("skill_tags", [])),
+            skill_type=_clean_list(data.get("skill_type", [])),
+            transfer_potential=_clean_list(data.get("transfer_potential", [])),
+            shortage_relevance=str(data.get("shortage_relevance", "")).strip(),
+            privacy_boundary=str(data.get("privacy_boundary", "")).strip(),
+            archive_entry_path=str(data.get("archive_entry_path", "")).strip(),
         )

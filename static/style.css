@@ -466,6 +466,29 @@ textarea {
   font-size: 0.9rem;
 }
 
+.skill-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.skill-tag-list.compact {
+  margin-top: 6px;
+}
+
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #e7d8bf;
+  border-radius: 999px;
+  background: #fbf4e7;
+  color: #6c4a18;
+  padding: 6px 10px;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.84rem;
+}
+
 .primary-btn,
 button.primary-btn {
   display: inline-flex;

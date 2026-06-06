@@ -5,6 +5,7 @@ from pathlib import Path
 
 from flask import Flask, abort, flash, redirect, render_template, request, send_file, url_for
 
+from src.archive_utils import ARCHIVE_PRIVACY_BOUNDARY, build_archive_entry
 from src.analyzer import analyze_practice
 from src.exporter import export_json, export_markdown, export_training_jsonl
 from src.schema import PracticeMemory
@@ -57,6 +58,16 @@ def _safe_guidance_notice(data: dict[str, object]) -> str:
 
 def _safe_practice_notice(data: dict[str, object]) -> str:
     return "Practice guidance generated from selected frames and local context." if data.get("model_notice") else ""
+
+
+def _archive_defaults(data: dict[str, object]) -> dict[str, object]:
+    data.setdefault("skill_tags", [])
+    data.setdefault("skill_type", [])
+    data.setdefault("transfer_potential", [])
+    data.setdefault("shortage_relevance", "")
+    data.setdefault("privacy_boundary", ARCHIVE_PRIVACY_BOUNDARY)
+    data.setdefault("archive_entry_path", "")
+    return data
 
 
 def _compact_parse_note(data: dict[str, object]) -> str:
@@ -139,6 +150,7 @@ def process():
         ghost_motion_overlay=ghost_motion_overlay,
     )
     practice_memory = analysis["practice_memory"]
+    archive_entry_path = _session_root(session_id) / "archive_entry.json"
 
     session_data = {
         "session_id": session_id,
@@ -226,6 +238,25 @@ def process():
         },
         "practice_memory": practice_memory,
     }
+    archive_entry = build_archive_entry(
+        session_id=session_id,
+        created_at=str(session_data.get("created_at", "")),
+        session_data=session_data,
+        analysis=analysis,
+        archive_entry_path=str(archive_entry_path),
+    )
+    archive_entry_path.write_text(json.dumps(archive_entry, indent=2, ensure_ascii=False), encoding="utf-8")
+    archive_fields = {
+        "skill_tags": archive_entry.get("skill_tags", []),
+        "skill_type": archive_entry.get("skill_type", []),
+        "transfer_potential": archive_entry.get("transfer_potential", []),
+        "shortage_relevance": archive_entry.get("shortage_relevance", ""),
+        "privacy_boundary": archive_entry.get("privacy_boundary", ARCHIVE_PRIVACY_BOUNDARY),
+        "archive_entry_path": archive_entry.get("archive_entry_path", str(archive_entry_path)),
+    }
+    practice_memory.update(archive_fields)
+    session_data.update(archive_fields)
+    session_data["practice_memory"] = practice_memory
     save_session_data(session_id, session_data)
     return redirect(url_for("compare", session_id=session_id))
 
@@ -288,6 +319,7 @@ def compare(session_id: str):
     data.setdefault("visual_evidence_note", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
     data.setdefault("visual_observation_summary", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
     data.setdefault("guidance_source", "")
+    _archive_defaults(data)
     for frames, kind in ((master_frames, "master"), (practice_frames, practice_kind)):
         for frame in frames:
             frame["url"] = _relative_frame_url(session_id, kind, frame["filename"])
@@ -352,6 +384,7 @@ def memory(session_id: str):
     data.setdefault("visual_evidence_note", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
     data.setdefault("visual_observation_summary", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
     data.setdefault("guidance_source", "")
+    _archive_defaults(data)
     return render_template(
         "practice_memory.html",
         data=data,
@@ -454,6 +487,7 @@ def judge(session_id: str):
     data.setdefault("visual_evidence_note", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
     data.setdefault("visual_observation_summary", "Selected frames were reviewed locally. The user-provided craft label is not visually confirmed.")
     data.setdefault("guidance_source", "")
+    _archive_defaults(data)
     ghost_motion_overlay = str(data.get("ghost_motion_overlay") or "").strip()
     if ghost_motion_overlay and Path(ghost_motion_overlay).exists():
         data["ghost_motion_overlay_url"] = url_for(

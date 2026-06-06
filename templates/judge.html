@@ -100,6 +100,37 @@
 
     <section class="grid-2">
       <div class="card">
+        <h2>Local Skill Graph Preview</h2>
+        <p class="muted">Preview only. No job matching backend or graph database is used.</p>
+        {% if data.skill_tags %}
+          <div class="skill-tag-list">
+            {% for tag in data.skill_tags %}
+              <span class="skill-tag">{{ tag }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <dl class="info-list">
+          <div><dt>Skill Type</dt><dd>{{ data.skill_type|join(', ') if data.skill_type else 'Unspecified' }}</dd></div>
+          <div><dt>Transfer Potential</dt><dd>{{ data.transfer_potential|join(', ') if data.transfer_potential else 'Unspecified' }}</dd></div>
+          <div><dt>Shortage Relevance</dt><dd>{{ data.shortage_relevance or 'Unspecified' }}</dd></div>
+          <div><dt>Privacy Boundary</dt><dd>{{ data.privacy_boundary or 'Raw video stays local. Only skill metadata can be shared.' }}</dd></div>
+        </dl>
+      </div>
+      <div class="card">
+        <h2>Archive Entry</h2>
+        <dl class="info-list">
+          <div><dt>Archive Entry saved</dt><dd>{{ 'Yes' if data.archive_entry_path else 'No' }}</dd></div>
+          <div><dt>archive_entry.json path</dt><dd>{{ data.archive_entry_path or 'Not saved yet' }}</dd></div>
+          <div><dt>session_id</dt><dd>{{ data.session_id }}</dd></div>
+          <div><dt>created_at</dt><dd>{{ data.created_at }}</dd></div>
+          <div><dt>guidance_source</dt><dd>{{ data.guidance_source or 'Unspecified' }}</dd></div>
+        </dl>
+        <p class="muted">Kiwami Capture does not expose secret techniques. It exposes the shape of skill.</p>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
         <h2>What was extracted</h2>
         {% if data.has_practice_clip %}
           <p>Local key frame extraction produced {{ data.frames.master|length }} master frames and {{ data.frames.practice|length }} practice frames.</p>

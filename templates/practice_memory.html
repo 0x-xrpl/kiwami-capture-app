@@ -46,6 +46,13 @@
         {% if data.hand_evidence_status == 'detected' %}
           <p class="muted">Hand contact was visible in the selected frames, so the cues lean on steady contact and slow release.</p>
         {% endif %}
+        {% if practice_memory.skill_tags %}
+          <div class="skill-tag-list compact">
+            {% for tag in practice_memory.skill_tags %}
+              <span class="skill-tag">{{ tag }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
       </div>
       <div class="memory-snapshot">
         <div>
