@@ -4,12 +4,31 @@ Local-first LFM application for preserving hands-on skill as Practice Memory.
 
 Kiwami Capture turns expert demonstration clips into evidence-aware guidance using selected keyframes, MediaPipe Evidence Scan, local Liquid LFM guidance, expert review, and Training JSONL export.
 
-Kiwami Capture preserves skill.
-Kiwami Bridge helps that skill find where it is needed next.
+Kiwami Capture preserves skill. Kiwami Bridge helps that skill find where it is needed next.
+
+## KIWAMI BRIDGE
+
+Kiwami Bridge connects preserved skill to the places where it can be needed next.
+
+Rare hands-on expertise is often difficult to evaluate through a normal resume or job profile, especially when the value lives in motion, timing, judgment, tool handling, and field experience. Kiwami Bridge uses skill metadata from Kiwami Capture to make this hidden expertise easier to understand and connect with future learning, succession, job matching, and specialized work contexts.
+
+It does not expose identity, faces, private video, or confidential information. It focuses on the skill itself: what was preserved, what it can teach, and where it may create value next.
 
 ## What Kiwami Means
 
 “Kiwami” means mastery, refinement, or the pursuit of the highest level of craft. In this project, it represents the point where expert skill becomes difficult to write down, but still possible to observe, preserve, and pass forward.
+
+## Problem
+
+Many hands-on skills are difficult to write down, evaluate, and pass on. In craft, manufacturing, energy, data centers, piping, electrical transmission, pipe fitting, maintenance, inspection, and other specialized field work, expert knowledge often lives in motion, timing, judgment, and experience. As skilled workers age and specialized trades decline, this knowledge can disappear before the next generation can learn it.
+
+## Solution
+
+Kiwami Capture converts expert demonstration clips into structured Practice Memory. It helps successors understand what to notice, how to practice, and why expert motion matters. Kiwami Bridge then turns preserved skills into metadata that can connect them to learning, succession, job matching, and future industries without exposing private identity or confidential video.
+
+## Business
+
+Kiwami Capture can serve craft studios, schools, manufacturers, maintenance teams, infrastructure operators, energy facilities, and organizations that depend on rare technical roles such as pipe fitters, electrical technicians, field inspectors, machine installers, and specialized maintenance workers. It can start as local-first skill capture software and grow into training, skill archive management, and specialized skill-matching infrastructure for industries that depend on hard-to-replace human expertise.
 
 ## Challenge Theme Fit
 
