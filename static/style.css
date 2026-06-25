@@ -3104,6 +3104,12 @@ body.app-page .topbar-actions .button-stack {
   padding-bottom: 9px;
 }
 
+body.resend-home .topbar-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 /* Capture v2 evidence room */
 body.capture-v2-page {
   background:
