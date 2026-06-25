@@ -27,6 +27,7 @@ from src.archive_utils import (
 from src.analyzer import analyze_practice
 from src.exporter import export_json, export_markdown, export_training_jsonl
 from src.schema import PracticeMemory
+from src.capture_v2.sample_evidence import build_capture_v2_sample_data
 from src.storage import (
     OUTPUTS_DIR,
     UPLOADS_DIR,
@@ -488,6 +489,10 @@ def process():
     save_session_data(session_id, session_data)
     return redirect(url_for("index", session_id=session_id, _anchor="review"))
 
+@app.route("/capture-v2", methods=["GET"])
+def capture_v2():
+    capture_v2_data = build_capture_v2_sample_data()
+    return render_template("capture_v2.html", capture_v2_data=capture_v2_data)
 
 @app.route("/compare/<session_id>")
 def compare(session_id: str):

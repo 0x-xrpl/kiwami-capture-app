@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ capture_v2_data.page_title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="app-page capture-v2-page">
+  <div class="page-shell capture-v2-shell">
+    <header class="topbar app-topbar">
+      <a class="brand" href="{{ url_for('index') }}" aria-label="Kiwami Capture home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-copy">
+          <strong>Kiwami Capture</strong>
+          <span>Local-first evidence workflow</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="Primary">
+        <a href="{{ url_for('index') }}">Capture</a>
+        <a href="{{ url_for('research_page') }}">Research</a>
+        <a href="{{ url_for('capture_v2') }}">Evidence v2</a>
+        <a href="{{ url_for('index') }}#archive">Archive</a>
+        <a href="{{ url_for('bridge_page') }}">Bridge</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <span class="status-pill"><i></i> Local only</span>
+        <a class="button button-outline btn-secondary" href="{{ url_for('index') }}">Back to Capture</a>
+      </div>
+    </header>
+
+    <section class="card capture-v2-hero capture-v2-panel">
+      <div class="capture-v2-hero-copy">
+        <p class="eyebrow">EVIDENCE CAPTURE ROOM</p>
+        <h1>{{ capture_v2_data.page_title }}</h1>
+        <p class="lede">{{ capture_v2_data.subtitle }}</p>
+        <p class="capture-v2-status-line">{{ capture_v2_data.status_line }}</p>
+        <div class="capture-v2-status-row">
+          <span class="trust-chip">Sample evidence only</span>
+          <span class="trust-chip">Expert review gates trust</span>
+          <span class="trust-chip">Local-first practice memory</span>
+        </div>
+      </div>
+      <div class="capture-v2-hero-note">
+        <strong>Workflow</strong>
+        <p>Capture evidence, inspect uncertainty, let an expert approve or correct it, then export only confirmed Practice Memory.</p>
+        <p class="muted">No cloud upload. No external LLM/API. No raw clip or identity data leaves the device.</p>
+      </div>
+    </section>
+
+    <section class="capture-v2-grid capture-v2-grid-two">
+      <article class="card capture-v2-card capture-v2-video-card capture-v2-panel">
+        <div class="section-head">
+          <div class="eyebrow">VIDEO EVIDENCE VIEW</div>
+          <h2>Sample local evidence frame</h2>
+          <p class="muted">Visual overlays are placeholders for later OpenCV / MediaPipe hooks. The current build stays local and static.</p>
+        </div>
+
+        <div class="capture-v2-video-stage">
+          <div class="capture-v2-video-frame">
+            <div class="capture-v2-video-label">
+              <span>{{ capture_v2_data.sample_video.label }}</span>
+              <strong>{{ capture_v2_data.sample_video.calibration_status }}</strong>
+            </div>
+            <div class="capture-v2-video-title">Sample clip preview</div>
+            <div class="capture-v2-video-subtitle">Angles, landmarks, and trajectories are estimated placeholders.</div>
+            <div class="capture-v2-overlay capture-v2-overlay-hand">hand landmarks</div>
+            <div class="capture-v2-overlay capture-v2-overlay-pose">pose landmarks</div>
+            <div class="capture-v2-overlay capture-v2-overlay-wrist">wrist angle: {{ capture_v2_data.sample_video.angles.wrist }}</div>
+            <div class="capture-v2-overlay capture-v2-overlay-elbow">elbow angle: {{ capture_v2_data.sample_video.angles.elbow }}</div>
+            <div class="capture-v2-overlay capture-v2-overlay-shoulder">shoulder angle: {{ capture_v2_data.sample_video.angles.shoulder }}</div>
+            <svg class="capture-v2-trajectory-path" viewBox="0 0 1000 620" aria-hidden="true">
+              <path d="M 150 470 C 260 400, 330 395, 430 360 S 610 290, 730 250 S 870 220, 930 165" />
+              <circle cx="150" cy="470" r="9" />
+              <circle cx="430" cy="360" r="9" />
+              <circle cx="730" cy="250" r="9" />
+              <circle cx="930" cy="165" r="9" />
+            </svg>
+            <div class="capture-v2-overlay capture-v2-overlay-trajectory">trajectory path</div>
+          </div>
+        </div>
+
+        <div class="capture-v2-summary-foot">
+          <span class="trust-chip">Wrist Angle: {{ capture_v2_data.sample_video.angles.wrist }}</span>
+          <span class="trust-chip">Elbow Angle: {{ capture_v2_data.sample_video.angles.elbow }}</span>
+          <span class="trust-chip">Shoulder Angle: {{ capture_v2_data.sample_video.angles.shoulder }}</span>
+        </div>
+        <p class="capture-v2-note">{{ capture_v2_data.sample_video.note }}</p>
+      </article>
+
+      <article class="card capture-v2-card capture-v2-panel">
+        <div class="section-head">
+          <div class="eyebrow">EVIDENCE SUMMARY</div>
+          <h2>Current sample evidence</h2>
+          <p class="muted">This is the structured evidence snapshot used by the review and export tools.</p>
+        </div>
+
+        <div class="capture-v2-summary-list">
+          <div class="capture-v2-summary-row"><strong>timestamp</strong><span>{{ capture_v2_data.evidence_summary.timestamp }}</span></div>
+          <div class="capture-v2-summary-row"><strong>frame_id</strong><span>{{ capture_v2_data.evidence_summary.frame_id }}</span></div>
+          <div class="capture-v2-summary-row"><strong>calibration_status</strong><span>{{ capture_v2_data.evidence_summary.calibration_status }}</span></div>
+          <div class="capture-v2-summary-row"><strong>wrist_angle</strong><span>{{ capture_v2_data.evidence_summary.wrist_angle }}</span></div>
+          <div class="capture-v2-summary-row"><strong>movement_speed</strong><span>{{ capture_v2_data.evidence_summary.movement_speed }}</span></div>
+          <div class="capture-v2-summary-row"><strong>pause_detected</strong><span>{{ 'true' if capture_v2_data.evidence_summary.pause_detected else 'false' }}</span></div>
+          <div class="capture-v2-summary-row"><strong>confidence</strong><span>{{ capture_v2_data.evidence_summary.confidence }}</span></div>
+          <div class="capture-v2-summary-row"><strong>status</strong><span><span class="capture-v2-status inferred">{{ capture_v2_data.evidence_summary.status }}</span></span></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="card capture-v2-card capture-v2-panel">
+      <div class="section-head">
+        <div class="eyebrow">EVIDENCE TIMELINE</div>
+        <h2>Sample events from local evidence</h2>
+        <p class="muted">Detected = observed locally, Inferred = candidate only, Expert-confirmed = approved by a human expert.</p>
+      </div>
+
+      <div class="capture-v2-timeline-grid">
+        {% for event in capture_v2_data.timeline %}
+          <article class="capture-v2-event capture-v2-event-timeline" data-event-id="{{ event.id }}">
+            <div class="capture-v2-event-head">
+              <div>
+                <p class="eyebrow eyebrow-small">{{ event.timestamp }}</p>
+                <h3>{{ event.detected_value }}</h3>
+              </div>
+              <span class="capture-v2-status {{ event.status|lower|replace(' ', '-') }}" data-role="status-label">{{ event.status }}</span>
+            </div>
+            <p class="capture-v2-event-frame">frame_id: <strong>{{ event.frame_id }}</strong></p>
+            <div class="capture-v2-event-stats">
+              <div><span>detected value</span><strong>{{ event.detected_value }}</strong></div>
+              <div><span>confidence</span><strong>{{ event.confidence }}</strong></div>
+              <div><span>review decision</span><strong data-role="decision-label">{{ event.decision }}</strong></div>
+            </div>
+            <div class="capture-v2-event-note">Evidence stays local until an expert confirms it.</div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="capture-v2-grid capture-v2-grid-two">
+      <article class="card capture-v2-card capture-v2-panel capture-v2-chat-card">
+        <div class="section-head">
+          <div class="eyebrow">GROUNDED LOCAL CHAT</div>
+          <h2>Ask about the current evidence</h2>
+          <p class="muted">The response is generated locally and may only reference the timeline and expert review notes.</p>
+        </div>
+
+        <div class="capture-v2-chat-log" id="capture-v2-chat-log" aria-live="polite">
+          <div class="capture-v2-bubble assistant">{{ capture_v2_data.initial_chat_response }}</div>
+        </div>
+
+        <div class="capture-v2-question-chips">
+          {% for prompt in capture_v2_data.chat_prompts %}
+            <button type="button" class="button button-outline btn-secondary capture-v2-question-chip" data-question="{{ prompt }}">{{ prompt }}</button>
+          {% endfor %}
+        </div>
+
+        <form id="capture-v2-chat-form" class="capture-v2-chat-form">
+          <label class="field field-full">
+            <span>Question</span>
+            <textarea id="capture-v2-chat-question" rows="3" placeholder="Ask about the angle change, the pause, or what still needs expert review.">{{ capture_v2_data.initial_chat_question }}</textarea>
+          </label>
+          <div class="capture-v2-actions-row">
+            <button type="submit" class="button button-primary btn-primary">Ask Local Chat</button>
+            <span class="capture-v2-footnote">Grounded only in evidence timeline entries and expert notes.</span>
+          </div>
+        </form>
+      </article>
+
+      <article class="card capture-v2-card capture-v2-panel">
+        <div class="section-head">
+          <div class="eyebrow">FUTURE HOOKS</div>
+          <h2>Later processing hooks</h2>
+          <p class="muted">These are placeholders only. No real OpenCV or MediaPipe processing runs in this MVP.</p>
+        </div>
+        <div class="capture-v2-hook-grid">
+          {% for hook in capture_v2_data.future_hooks %}
+            <span class="trust-chip">{{ hook }}</span>
+          {% endfor %}
+        </div>
+        <div class="capture-v2-note-block">
+          <strong>Privacy rule</strong>
+          <p>No raw clips, frames, faces, audio, identities, site details, or analysis data are sent outside the device.</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="card capture-v2-card capture-v2-panel">
+      <div class="section-head">
+        <div class="eyebrow">EXPERT REVIEW</div>
+        <h2>Approve, edit, or reject each evidence event</h2>
+        <p class="muted">Only Expert-confirmed items become trusted Practice Memory.</p>
+      </div>
+
+      <div class="capture-v2-review-grid" id="capture-v2-review-grid">
+        {% for event in capture_v2_data.timeline %}
+          <article class="capture-v2-event capture-v2-review-card" data-event-id="{{ event.id }}">
+            <div class="capture-v2-event-head">
+              <div>
+                <p class="eyebrow eyebrow-small">{{ event.timestamp }}</p>
+                <h3>{{ event.detected_value }}</h3>
+              </div>
+              <span class="capture-v2-status {{ event.status|lower|replace(' ', '-') }}" data-role="status-label">{{ event.status }}</span>
+            </div>
+            <p class="capture-v2-event-frame">frame_id: <strong>{{ event.frame_id }}</strong></p>
+            <div class="capture-v2-event-stats">
+              <div><span>detected value</span><strong>{{ event.detected_value }}</strong></div>
+              <div><span>confidence</span><strong>{{ event.confidence }}</strong></div>
+              <div><span>review decision</span><strong data-role="decision-label">{{ event.decision }}</strong></div>
+            </div>
+            <div class="capture-v2-review-actions">
+              <button type="button" class="button button-primary btn-primary" data-action="approve">Approve</button>
+              <button type="button" class="button button-outline btn-secondary" data-action="edit">Edit</button>
+              <button type="button" class="button button-outline btn-secondary" data-action="reject">Reject</button>
+            </div>
+            <div class="capture-v2-edit" hidden>
+              <label class="field field-full">
+                <span>expert_correction</span>
+                <textarea rows="2" data-field="expert_correction" placeholder="Optional expert correction">{{ event.expert_correction }}</textarea>
+              </label>
+              <label class="field field-full">
+                <span>practice_point</span>
+                <textarea rows="2" data-field="practice_point" placeholder="Optional practice point">{{ event.practice_point }}</textarea>
+              </label>
+              <label class="field field-full">
+                <span>failure_pattern</span>
+                <textarea rows="2" data-field="failure_pattern" placeholder="Optional failure pattern">{{ event.failure_pattern }}</textarea>
+              </label>
+              <div class="capture-v2-review-actions">
+                <button type="button" class="button button-primary btn-primary" data-action="save-edit">Save Edit</button>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card capture-v2-card capture-v2-panel">
+      <div class="section-head">
+        <div class="eyebrow">PRACTICE MEMORY EXPORT</div>
+        <h2>Trusted export preview</h2>
+        <p class="muted">The preview and downloads only include Expert-confirmed items.</p>
+      </div>
+
+      <div class="capture-v2-export-grid">
+        <div class="capture-v2-export-panel">
+          <div class="capture-v2-note-block">
+            <strong>Preview shape</strong>
+            <p>{{ capture_v2_data.export_preview_hint }}</p>
+          </div>
+          <pre id="capture-v2-export-preview" class="capture-v2-export-preview">[]</pre>
+          <div class="capture-v2-export-actions">
+            <button type="button" class="button button-primary btn-primary" data-export-format="json">Export JSON</button>
+            <button type="button" class="button button-outline btn-secondary" data-export-format="markdown">Export Markdown</button>
+            <button type="button" class="button button-outline btn-secondary" data-export-format="jsonl">Export JSONL</button>
+          </div>
+          <p id="capture-v2-export-note" class="capture-v2-footnote">Approve at least one event to create trusted Practice Memory.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script id="capture-v2-data" type="application/json">{{ capture_v2_data | tojson }}</script>
+  <script>
+    (function () {
+      const dataScript = document.getElementById('capture-v2-data');
+      const exportPreview = document.getElementById('capture-v2-export-preview');
+      const exportNote = document.getElementById('capture-v2-export-note');
+      const chatLog = document.getElementById('capture-v2-chat-log');
+      const chatForm = document.getElementById('capture-v2-chat-form');
+      const chatQuestion = document.getElementById('capture-v2-chat-question');
+      const reviewGrid = document.getElementById('capture-v2-review-grid');
+      const questionChips = document.querySelectorAll('.capture-v2-question-chip');
+      const exportButtons = document.querySelectorAll('[data-export-format]');
+      if (!dataScript || !exportPreview || !exportNote || !chatLog || !chatForm || !chatQuestion || !reviewGrid) {
+        return;
+      }
+
+      const initialData = JSON.parse(dataScript.textContent || '{}');
+      const state = {
+        timeline: (initialData.timeline || []).map((item) => ({ ...item })),
+        reviewNotes: initialData.review_notes || [],
+      };
+
+      const downloadFile = (filename, content, mimeType) => {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      };
+
+      const getEvent = (eventId) => state.timeline.find((item) => item.id === eventId);
+
+      const formatExportItem = (item) => ({
+        skill_name: initialData.export_skill_name || 'sample skill',
+        source_video: initialData.export_source_video || 'sample_clip.mp4',
+        evidence_time: item.timestamp,
+        frame_id: item.frame_id,
+        keyframe_path: item.keyframe_path,
+        detected_signal: {
+          wrist_angle: '42° estimated',
+          movement_speed: '24 px/s',
+          pause_detected: true,
+        },
+        trajectory_points: item.trajectory_points || [],
+        calibration_status: item.calibration_status || 'uncalibrated',
+        ai_suggestion: item.detected_value,
+        expert_correction: item.expert_correction || '',
+        practice_point: item.practice_point || '',
+        failure_pattern: item.failure_pattern || '',
+        status: 'expert-confirmed',
+        confidence: item.confidence,
+      });
+
+      const buildExportItems = () => state.timeline
+        .filter((item) => item.status === 'Expert-confirmed' && item.decision !== 'Rejected')
+        .map(formatExportItem);
+
+      const localChatResponse = (question) => {
+        const items = state.timeline;
+        if (!items.length) {
+          return 'This cannot be confirmed from the available evidence. Expert review is required.';
+        }
+        const target = items.find((item) => /pause/i.test(item.detected_value)) || items.find((item) => item.status !== 'Rejected') || items[0];
+        const candidateValues = items.map((item) => String(item.detected_value || ''));
+        const mentions = [];
+        if (candidateValues.some((value) => /pause/i.test(value))) {
+          mentions.push('a pause');
+        }
+        if (candidateValues.some((value) => /angle shift/i.test(value))) {
+          mentions.push('a wrist angle change');
+        }
+        if (!mentions.length) {
+          mentions.push(target.detected_value || 'evidence');
+        }
+        const base = `At ${target.timestamp}, ${mentions.join(' and ')} were detected from ${target.frame_id}.`;
+        if (target.status === 'Expert-confirmed') {
+          return `${base} ${state.reviewNotes[1] || state.reviewNotes[0] || 'Use the expert notes to turn it into Practice Memory.'}`;
+        }
+        return `${base} This is still unconfirmed. Expert review is required before it becomes Practice Memory.`;
+      };
+
+      const renderEventCard = (card, event) => {
+        if (!card || !event) {
+          return;
+        }
+        const statusLabel = card.querySelector('[data-role="status-label"]');
+        const decisionLabel = card.querySelector('[data-role="decision-label"]');
+        const editPanel = card.querySelector('.capture-v2-edit');
+        const correctionField = card.querySelector('[data-field="expert_correction"]');
+        const practiceField = card.querySelector('[data-field="practice_point"]');
+        const failureField = card.querySelector('[data-field="failure_pattern"]');
+        card.classList.toggle('is-confirmed', event.status === 'Expert-confirmed');
+        card.classList.toggle('is-rejected', event.decision === 'Rejected');
+        if (statusLabel) {
+          statusLabel.textContent = event.status;
+          statusLabel.className = `capture-v2-status ${event.status.toLowerCase().replace(/\s+/g, '-')}`;
+        }
+        if (decisionLabel) {
+          decisionLabel.textContent = event.decision;
+        }
+        if (correctionField && correctionField.value !== event.expert_correction) {
+          correctionField.value = event.expert_correction || '';
+        }
+        if (practiceField && practiceField.value !== event.practice_point) {
+          practiceField.value = event.practice_point || '';
+        }
+        if (failureField && failureField.value !== event.failure_pattern) {
+          failureField.value = event.failure_pattern || '';
+        }
+        if (editPanel && event.status === 'Expert-confirmed') {
+          editPanel.hidden = true;
+        }
+      };
+
+      const renderAllCards = () => {
+        state.timeline.forEach((event) => {
+          document.querySelectorAll(`[data-event-id="${event.id}"]`).forEach((card) => renderEventCard(card, event));
+        });
+      };
+
+      const renderExportPreview = () => {
+        const items = buildExportItems();
+        exportPreview.textContent = JSON.stringify(items, null, 2);
+        exportNote.textContent = items.length
+          ? `${items.length} Expert-confirmed item${items.length === 1 ? '' : 's'} ready for local export.`
+          : 'Approve at least one event to create trusted Practice Memory.';
+      };
+
+      const appendBubble = (role, text) => {
+        const bubble = document.createElement('div');
+        bubble.className = `capture-v2-bubble ${role}`;
+        bubble.textContent = text;
+        chatLog.appendChild(bubble);
+        chatLog.scrollTop = chatLog.scrollHeight;
+      };
+
+      const askLocalChat = (question) => {
+        const trimmed = (question || '').trim();
+        if (!trimmed) {
+          return;
+        }
+        appendBubble('user', trimmed);
+        appendBubble('assistant', localChatResponse(trimmed));
+      };
+
+      reviewGrid.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) {
+          return;
+        }
+        const card = button.closest('[data-event-id]');
+        if (!card) {
+          return;
+        }
+        const eventId = card.getAttribute('data-event-id');
+        const item = getEvent(eventId);
+        if (!item) {
+          return;
+        }
+        const action = button.getAttribute('data-action');
+        const editPanel = card.querySelector('.capture-v2-edit');
+        if (action === 'edit') {
+          editPanel.hidden = !editPanel.hidden;
+          return;
+        }
+        if (action === 'save-edit') {
+          item.expert_correction = (card.querySelector('[data-field="expert_correction"]')?.value || '').trim();
+          item.practice_point = (card.querySelector('[data-field="practice_point"]')?.value || '').trim();
+          item.failure_pattern = (card.querySelector('[data-field="failure_pattern"]')?.value || '').trim();
+          item.decision = 'Edited';
+          renderAllCards();
+          renderExportPreview();
+          return;
+        }
+        if (action === 'approve') {
+          item.status = 'Expert-confirmed';
+          item.decision = 'Approved';
+          renderAllCards();
+          renderExportPreview();
+          return;
+        }
+        if (action === 'reject') {
+          item.decision = 'Rejected';
+          renderAllCards();
+          renderExportPreview();
+        }
+      });
+
+      questionChips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+          const question = chip.getAttribute('data-question') || '';
+          chatQuestion.value = question;
+          askLocalChat(question);
+        });
+      });
+
+      chatForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        askLocalChat(chatQuestion.value);
+      });
+
+      exportButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const format = button.getAttribute('data-export-format');
+          const items = buildExportItems();
+          if (format === 'json') {
+            downloadFile('kiwami-capture-v2-practice-memory.json', JSON.stringify(items, null, 2), 'application/json');
+            return;
+          }
+          if (format === 'markdown') {
+            const lines = ['# Kiwami Capture v2 Practice Memory'];
+            if (!items.length) {
+              lines.push('', 'No Expert-confirmed items yet.');
+            } else {
+              items.forEach((item) => {
+                lines.push('', `- Skill: ${item.skill_name}`);
+                lines.push(`  - Evidence Time: ${item.evidence_time}`);
+                lines.push(`  - Frame ID: ${item.frame_id}`);
+                lines.push(`  - Calibration Status: ${item.calibration_status}`);
+                lines.push(`  - Confidence: ${item.confidence}`);
+                lines.push(`  - Status: ${item.status}`);
+                lines.push(`  - Expert Correction: ${item.expert_correction || '—'}`);
+                lines.push(`  - Practice Point: ${item.practice_point || '—'}`);
+                lines.push(`  - Failure Pattern: ${item.failure_pattern || '—'}`);
+              });
+            }
+            downloadFile('kiwami-capture-v2-practice-memory.md', lines.join('\n'), 'text/markdown');
+            return;
+          }
+          if (format === 'jsonl') {
+            const content = items.map((item) => JSON.stringify(item)).join('\n');
+            downloadFile('kiwami-capture-v2-practice-memory.jsonl', content, 'application/jsonl');
+          }
+        });
+      });
+
+      renderAllCards();
+      renderExportPreview();
+      chatLog.scrollTop = chatLog.scrollHeight;
+    })();
+  </script>
+</body>
+</html>
