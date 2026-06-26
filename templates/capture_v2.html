@@ -37,9 +37,9 @@
         <p class="lede">{{ capture_v2_data.subtitle }}</p>
         <p class="capture-v2-status-line">{{ capture_v2_data.status_line }}</p>
         <div class="capture-v2-status-row">
-          <span class="trust-chip">Sample evidence only</span>
-          <span class="trust-chip">Expert review gates trust</span>
-          <span class="trust-chip">Local-first practice memory</span>
+          <span class="trust-chip">Mode: {{ capture_v2_data.analysis_mode_label }}</span>
+          <span class="trust-chip">Source: {{ capture_v2_data.analysis_source_label }}</span>
+          <span class="trust-chip">Status: {{ capture_v2_data.analysis_status }}</span>
         </div>
       </div>
       <div class="capture-v2-hero-note">
@@ -49,12 +49,84 @@
       </div>
     </section>
 
+    <section class="card capture-v2-card capture-v2-panel capture-v2-analysis-panel">
+      <div class="section-head">
+        <div class="eyebrow">LOCAL ANALYSIS CONSOLE</div>
+        <h2>Run sample or local video analysis</h2>
+        <p class="muted">Sample mode keeps the UI placeholder. Real mode samples a local clip with OpenCV first and MediaPipe only when available.</p>
+      </div>
+
+      <form id="capture-v2-analyze-form" class="capture-v2-analyze-form" method="post" enctype="multipart/form-data">
+        <div class="capture-v2-analyze-grid">
+          <label class="field field-full">
+            <span>Local video file</span>
+            <input id="capture-v2-video" type="file" name="capture_video" accept="video/*">
+          </label>
+          <label class="field">
+            <span>analysis_mode</span>
+            <select name="precision_mode">
+              <option value="fast" {% if capture_v2_data.analysis_mode == 'fast' %}selected{% endif %}>Fast Analysis</option>
+              <option value="focused" {% if capture_v2_data.analysis_mode == 'focused' %}selected{% endif %}>Focused Analysis</option>
+              <option value="full" {% if capture_v2_data.analysis_mode == 'full' %}selected{% endif %}>High Precision / Full Frame</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>sample_interval_sec</span>
+            <input type="number" name="sample_interval_sec" min="0.1" step="0.1" value="0.5">
+          </label>
+          <label class="field">
+            <span>max_sampled_frames</span>
+            <input type="number" name="max_sampled_frames" min="1" step="1" value="12">
+          </label>
+          <label class="field">
+            <span>focused_window_sec</span>
+            <input type="number" name="focused_window_sec" min="0.5" step="0.5" value="2.0">
+          </label>
+          <div class="field capture-v2-checkbox-field">
+            <span>MediaPipe</span>
+            <label class="capture-v2-checkbox-row"><input type="checkbox" name="use_mediapipe" checked> Try MediaPipe after OpenCV sampling</label>
+          </div>
+        </div>
+
+        <input type="hidden" name="analysis_mode" value="fast">
+        <div class="capture-v2-analyze-actions">
+          <button type="button" class="button button-outline btn-secondary" id="capture-v2-sample-button">Use Sample Evidence</button>
+          <button type="submit" class="button button-primary btn-primary">Run Local Analysis</button>
+        </div>
+        <p id="capture-v2-analyze-feedback" class="capture-v2-footnote">No processing leaves the device. Sample mode stays separate from real analysis.</p>
+      </form>
+
+      <div class="capture-v2-analysis-status">
+        <div class="capture-v2-summary-list">
+          <div class="capture-v2-summary-row"><strong>analysis_mode</strong><span>{{ capture_v2_data.analysis_mode }}</span></div>
+          <div class="capture-v2-summary-row"><strong>analysis_mode_label</strong><span>{{ capture_v2_data.analysis_mode_label }}</span></div>
+          <div class="capture-v2-summary-row"><strong>evidence_source</strong><span>{{ capture_v2_data.evidence_source }}</span></div>
+          <div class="capture-v2-summary-row"><strong>sampled_frame_count</strong><span>{{ capture_v2_data.sampled_frame_count }}</span></div>
+          <div class="capture-v2-summary-row"><strong>frame_count</strong><span>{{ capture_v2_data.frame_count }}</span></div>
+          <div class="capture-v2-summary-row"><strong>analysis_status</strong><span>{{ capture_v2_data.analysis_status }}</span></div>
+          <div class="capture-v2-summary-row"><strong>analysis_message</strong><span>{{ capture_v2_data.analysis_message }}</span></div>
+        </div>
+        {% if capture_v2_data.warnings %}
+          <div class="capture-v2-warning-box">
+            <strong>Warnings</strong>
+            <ul class="capture-v2-warning-list">
+              {% for warning in capture_v2_data.warnings %}
+                <li>{{ warning }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% else %}
+          <p class="capture-v2-footnote">Warnings will appear here if OpenCV, MediaPipe, or the uploaded clip cannot produce supported evidence.</p>
+        {% endif %}
+      </div>
+    </section>
+
     <section class="capture-v2-grid capture-v2-grid-two">
       <article class="card capture-v2-card capture-v2-video-card capture-v2-panel">
         <div class="section-head">
           <div class="eyebrow">VIDEO EVIDENCE VIEW</div>
-          <h2>Sample local evidence frame</h2>
-          <p class="muted">Visual overlays are placeholders for later OpenCV / MediaPipe hooks. The current build stays local and static.</p>
+          <h2>{{ 'Sample local evidence frame' if capture_v2_data.evidence_source == 'sample' else 'Local evidence frame' }}</h2>
+          <p class="muted">{{ 'Visual overlays are placeholders for later OpenCV / MediaPipe hooks. The current build stays local and static.' if capture_v2_data.evidence_source == 'sample' else 'Visual overlays reflect supported frame evidence only. The analyzer stays local and never invents unsupported angles or trajectories.' }}</p>
         </div>
 
         <div class="capture-v2-video-stage">
@@ -63,8 +135,8 @@
               <span>{{ capture_v2_data.sample_video.label }}</span>
               <strong>{{ capture_v2_data.sample_video.calibration_status }}</strong>
             </div>
-            <div class="capture-v2-video-title">Sample clip preview</div>
-            <div class="capture-v2-video-subtitle">Angles, landmarks, and trajectories are estimated placeholders.</div>
+            <div class="capture-v2-video-title">{{ 'Sample clip preview' if capture_v2_data.evidence_source == 'sample' else 'Local clip preview' }}</div>
+            <div class="capture-v2-video-subtitle">{{ 'Angles, landmarks, and trajectories are estimated placeholders.' if capture_v2_data.evidence_source == 'sample' else 'Angles, landmarks, and trajectories only appear when supported by sampled local frame data.' }}</div>
             <div class="capture-v2-overlay capture-v2-overlay-hand">hand landmarks</div>
             <div class="capture-v2-overlay capture-v2-overlay-pose">pose landmarks</div>
             <div class="capture-v2-overlay capture-v2-overlay-wrist">wrist angle: {{ capture_v2_data.sample_video.angles.wrist }}</div>
@@ -92,8 +164,8 @@
       <article class="card capture-v2-card capture-v2-panel">
         <div class="section-head">
           <div class="eyebrow">EVIDENCE SUMMARY</div>
-          <h2>Current sample evidence</h2>
-          <p class="muted">This is the structured evidence snapshot used by the review and export tools.</p>
+          <h2>{{ 'Current sample evidence' if capture_v2_data.evidence_source == 'sample' else 'Current evidence snapshot' }}</h2>
+          <p class="muted">{{ 'This is the structured evidence snapshot used by the review and export tools.' if capture_v2_data.evidence_source == 'sample' else 'This snapshot is derived from sampled local video frames and any supported landmark data.' }}</p>
         </div>
 
         <div class="capture-v2-summary-list">
@@ -112,7 +184,7 @@
     <section class="card capture-v2-card capture-v2-panel">
       <div class="section-head">
         <div class="eyebrow">EVIDENCE TIMELINE</div>
-        <h2>Sample events from local evidence</h2>
+        <h2>{{ 'Sample events from local evidence' if capture_v2_data.evidence_source == 'sample' else 'Events from local evidence' }}</h2>
         <p class="muted">Detected = observed locally, Inferred = candidate only, Expert-confirmed = approved by a human expert.</p>
       </div>
 
@@ -273,6 +345,11 @@
       const reviewGrid = document.getElementById('capture-v2-review-grid');
       const questionChips = document.querySelectorAll('.capture-v2-question-chip');
       const exportButtons = document.querySelectorAll('[data-export-format]');
+      const analyzeForm = document.getElementById('capture-v2-analyze-form');
+      const analyzeFeedback = document.getElementById('capture-v2-analyze-feedback');
+      const analyzeVideoInput = document.getElementById('capture-v2-video');
+      const analyzeSampleButton = document.getElementById('capture-v2-sample-button');
+      const analyzeButtons = analyzeForm ? analyzeForm.querySelectorAll('button[type="submit"]') : [];
       if (!dataScript || !exportPreview || !exportNote || !chatLog || !chatForm || !chatQuestion || !reviewGrid) {
         return;
       }
@@ -303,11 +380,7 @@
         evidence_time: item.timestamp,
         frame_id: item.frame_id,
         keyframe_path: item.keyframe_path,
-        detected_signal: {
-          wrist_angle: '42° estimated',
-          movement_speed: '24 px/s',
-          pause_detected: true,
-        },
+        detected_signal: item.detected_signal || {},
         trajectory_points: item.trajectory_points || [],
         calibration_status: item.calibration_status || 'uncalibrated',
         ai_suggestion: item.detected_value,
@@ -410,6 +483,40 @@
         appendBubble('assistant', localChatResponse(trimmed));
       };
 
+      if (analyzeSampleButton && analyzeForm) {
+        analyzeSampleButton.addEventListener('click', () => {
+          const modeField = analyzeForm.querySelector('input[name="analysis_mode"]');
+          if (modeField) {
+            modeField.value = 'sample';
+          }
+          analyzeForm.submit();
+        });
+      }
+
+      if (analyzeForm) {
+        analyzeForm.addEventListener('submit', (event) => {
+          const submitter = event.submitter;
+          const mode = submitter ? String(submitter.value || '') : '';
+          if (mode === 'real' && (!analyzeVideoInput || !analyzeVideoInput.files || !analyzeVideoInput.files.length)) {
+            event.preventDefault();
+            if (analyzeFeedback) {
+              analyzeFeedback.textContent = 'Select a local video file before running real analysis.';
+            }
+            return;
+          }
+          if (analyzeFeedback) {
+            analyzeFeedback.textContent = 'Analyzing locally...';
+          }
+          analyzeButtons.forEach((button) => {
+            button.disabled = true;
+            button.dataset.originalText = button.textContent || '';
+            if (mode === 'real') {
+              button.textContent = 'Analyzing locally...';
+            }
+          });
+        });
+      }
+
       reviewGrid.addEventListener('click', (event) => {
         const button = event.target.closest('button[data-action]');
         if (!button) {
@@ -503,6 +610,17 @@
 
       renderAllCards();
       renderExportPreview();
+      if (analyzeFeedback && initialData.analysis_message) {
+        analyzeFeedback.textContent = initialData.analysis_message;
+      }
+      if (analyzeButtons.length) {
+        analyzeButtons.forEach((button) => {
+          if (button.dataset.originalText) {
+            button.textContent = button.dataset.originalText;
+          }
+          button.disabled = false;
+        });
+      }
       chatLog.scrollTop = chatLog.scrollHeight;
     })();
   </script>

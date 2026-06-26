@@ -28,6 +28,7 @@ from src.analyzer import analyze_practice
 from src.exporter import export_json, export_markdown, export_training_jsonl
 from src.schema import PracticeMemory
 from src.capture_v2.sample_evidence import build_capture_v2_sample_data
+from src.capture_v2.analyzer import analyze_local_capture_video
 from src.storage import (
     OUTPUTS_DIR,
     UPLOADS_DIR,
@@ -489,9 +490,66 @@ def process():
     save_session_data(session_id, session_data)
     return redirect(url_for("index", session_id=session_id, _anchor="review"))
 
-@app.route("/capture-v2", methods=["GET"])
-def capture_v2():
+def _build_capture_v2_error_data(message: str, warnings: list[str] | None = None) -> dict[str, object]:
     capture_v2_data = build_capture_v2_sample_data()
+    capture_v2_data.update(
+        {
+            "analysis_mode": "sample",
+            "analysis_mode_label": "Sample mode",
+            "analysis_source_label": "sample",
+            "evidence_source": "sample",
+            "analysis_status": "error",
+            "analysis_message": message,
+            "warnings": list(warnings or []),
+        }
+    )
+    return capture_v2_data
+
+
+@app.route("/capture-v2", methods=["GET", "POST"])
+def capture_v2():
+    if request.method == "POST":
+        analysis_mode = (request.form.get("precision_mode") or request.form.get("analysis_mode") or "sample").strip().lower()
+        sample_interval_sec = request.form.get("sample_interval_sec", request.form.get("sample_interval_seconds", "0.5"))
+        max_sampled_frames = request.form.get("max_sampled_frames", "12")
+        focused_window_sec = request.form.get("focused_window_sec", "2.0")
+        use_mediapipe = str(request.form.get("use_mediapipe") or "").strip().lower() in {"1", "true", "on", "checked"}
+        uploaded_video = request.files.get("capture_video")
+
+        if analysis_mode == "sample":
+            capture_v2_data = build_capture_v2_sample_data()
+        else:
+            if uploaded_video and uploaded_video.filename:
+                try:
+                    sample_interval = float(sample_interval_sec)
+                except Exception:
+                    sample_interval = 0.5
+                try:
+                    sampled_limit = int(max_sampled_frames)
+                except Exception:
+                    sampled_limit = 12
+                try:
+                    focused_window = float(focused_window_sec)
+                except Exception:
+                    focused_window = 2.0
+                upload_dir = _upload_root("capture-v2")
+                saved_video_path = save_uploaded_video(uploaded_video, upload_dir, "capture_v2")
+                capture_v2_data = analyze_local_capture_video(
+                    saved_video_path,
+                    analysis_mode=analysis_mode,
+                    uploaded_name=uploaded_video.filename or "",
+                    sample_interval_sec=sample_interval,
+                    max_sampled_frames=sampled_limit,
+                    focused_window_sec=focused_window,
+                    use_mediapipe=use_mediapipe,
+                )
+            else:
+                capture_v2_data = _build_capture_v2_error_data(
+                    "No local video was uploaded, so real analysis could not run.",
+                    ["Upload a local clip to run OpenCV or MediaPipe analysis."],
+                )
+    else:
+        capture_v2_data = build_capture_v2_sample_data()
     return render_template("capture_v2.html", capture_v2_data=capture_v2_data)
 
 @app.route("/compare/<session_id>")
